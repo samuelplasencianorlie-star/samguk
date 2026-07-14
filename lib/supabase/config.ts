@@ -11,6 +11,16 @@ export function getSupabaseConfig(): SupabaseConfig | null {
     return null;
   }
 
+  try {
+    const parsedUrl = new URL(url);
+
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
   return { anonKey, url };
 }
 
