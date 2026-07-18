@@ -40,7 +40,7 @@ export function setStoredLanguage(language: PublicLanguage) {
 
 function getLanguageHref(language: PublicLanguage) {
   if (typeof window === "undefined") {
-    return `?lang=${language}`;
+    return `/?lang=${language}`;
   }
 
   const url = new URL(window.location.href);

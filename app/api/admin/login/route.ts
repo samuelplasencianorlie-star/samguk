@@ -30,16 +30,6 @@ function isRateLimited(key: string) {
   return current.count > MAX_ATTEMPTS;
 }
 
-function maskEmail(email: string) {
-  const [name, domain] = email.split("@");
-
-  if (!name || !domain) {
-    return "invalid-email";
-  }
-
-  return `${name.slice(0, 2)}***@${domain}`;
-}
-
 type SupabasePasswordResponse = {
   access_token?: string;
   refresh_token?: string;
@@ -106,12 +96,6 @@ export async function POST(request: NextRequest) {
   const authUrl = new URL("/auth/v1/token", config.url);
   authUrl.searchParams.set("grant_type", "password");
 
-  console.info("[samguk-login] route hit", {
-    email: maskEmail(email),
-    supabaseHost: authUrl.host
-  });
-  console.info("[samguk-login] calling supabase auth password endpoint");
-
   let authResponse: Response;
 
   try {
@@ -137,14 +121,6 @@ export async function POST(request: NextRequest) {
     .json()
     .catch(() => ({}))) as SupabasePasswordResponse;
 
-  console.info("[samguk-login] supabase auth response", {
-    status: authResponse.status,
-    hasAccessToken: Boolean(authBody.access_token),
-    hasRefreshToken: Boolean(authBody.refresh_token),
-    hasUser: Boolean(authBody.user?.id),
-    error: authBody.error || authBody.msg || null
-  });
-
   if (!authResponse.ok) {
     return NextResponse.json(
       { message: "Usuario o contraseña incorrectos." },
@@ -165,12 +141,6 @@ export async function POST(request: NextRequest) {
       refresh_token: authBody.refresh_token
     });
 
-  console.info("[samguk-login] session set", {
-    hasSession: Boolean(sessionData.session),
-    hasUser: Boolean(sessionData.user?.id),
-    error: sessionError?.message || null
-  });
-
   if (sessionError || !sessionData.user) {
     return NextResponse.json(
       { message: "No se ha podido guardar la sesión." },
@@ -179,12 +149,6 @@ export async function POST(request: NextRequest) {
   }
 
   const { allowed, error: profileError } = await checkAdminAccess(supabase);
-
-  console.info("[samguk-login] profile check", {
-    userId: sessionData.user.id,
-    hasProfile: allowed,
-    error: profileError?.message || null
-  });
 
   if (profileError) {
     await supabase.auth.signOut();

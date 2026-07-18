@@ -7,7 +7,6 @@ import {
   LogOut,
   Settings,
   ShieldCheck,
-  UserPlus,
   UsersRound
 } from "lucide-react";
 import Image from "next/image";
@@ -109,13 +108,6 @@ export function AdminShell({ children }: AdminShellProps) {
             Vista de trabajo de Leo
           </p>
           <p className="mt-2 text-sm text-white/62">{siteConfig.fullName}</p>
-          <Link
-            href="/admin/alumnos#nuevo-alumno"
-            className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-[#C8102E] px-4 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(200,16,46,0.24)] transition-[background-color,transform,box-shadow] hover:-translate-y-0.5 hover:bg-[#A50D25] hover:shadow-[0_20px_48px_rgba(200,16,46,0.3)]"
-          >
-            <UserPlus size={17} strokeWidth={1.8} aria-hidden="true" />
-            Añadir alumno
-          </Link>
         </div>
 
         <nav className="flex-1 space-y-1 p-4" aria-label="Navegación privada">
@@ -181,16 +173,6 @@ export function AdminShell({ children }: AdminShellProps) {
               </h1>
               <p className="mt-1 text-sm text-[#687586]">{page.subtitle}</p>
             </div>
-            {pathname === "/admin/alumnos" ? (
-              <Link
-                href="/admin/alumnos#nuevo-alumno"
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-[#C8102E] px-5 text-sm font-semibold text-white shadow-[0_18px_44px_rgba(200,16,46,0.22)] transition-[background-color,transform,box-shadow] hover:-translate-y-0.5 hover:bg-[#A50D25] hover:shadow-[0_22px_54px_rgba(200,16,46,0.28)] sm:w-fit"
-              >
-                <UserPlus size={18} strokeWidth={1.8} aria-hidden="true" />
-                Añadir alumno
-              </Link>
-            ) : null}
-
             <nav
               className="flex w-full max-w-full min-w-0 gap-2 overflow-x-auto pb-1 lg:hidden"
               aria-label="Navegación privada móvil"

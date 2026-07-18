@@ -2,8 +2,10 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
+  AlertCircle,
   ArrowLeft,
   ChevronDown,
+  CheckCircle2,
   Clock3,
   Pencil,
   Search,
@@ -17,7 +19,10 @@ import type {
   Student,
   StudentStatus
 } from "@/lib/admin-types";
-import { LEGAL_CONSENT_VERSION } from "@/lib/legal-consent";
+import {
+  LEGAL_CONSENT_VERSION,
+  legalConsentSections
+} from "@/lib/legal-consent";
 
 type StudentsPanelProps = {
   initialStudents: Student[];
@@ -47,6 +52,9 @@ type StudentFormState = {
   fechaAceptacionLegal: string;
   textoLegalVersion: string;
   notes: string;
+  acceptanceName: string;
+  acceptanceRelation: string;
+  presencialConfirmado: boolean;
 };
 
 type StudentTab = "Resumen" | "Progreso" | "Asistencia" | "Notas" | "Historial" | "Datos";
@@ -73,7 +81,10 @@ const emptyStudentForm: StudentFormState = {
   derechosImagen: null,
   fechaAceptacionLegal: "",
   textoLegalVersion: LEGAL_CONSENT_VERSION,
-  notes: ""
+  notes: "",
+  acceptanceName: "",
+  acceptanceRelation: "",
+  presencialConfirmado: false
 };
 
 const studentStatusOptions: StudentStatus[] = [
@@ -95,20 +106,12 @@ const studentTabs: StudentTab[] = [
 const inputClass =
   "mt-2 min-h-11 w-full rounded-[10px] border border-[#D8E0E6] bg-white px-3 text-sm outline-none transition-colors focus:border-[#174EA6] focus:ring-2 focus:ring-[#174EA6]/15";
 
-const booleanAuthorizationFields = [
-  ["condicionesAceptadas", "Condiciones aceptadas"],
-  ["proteccionDatosAceptada", "Protección de datos aceptada"],
-  ["tutorConfirmado", "Tutor confirmado"],
-  ["responsabilidadAceptada", "Responsabilidad deportiva aceptada"]
-] as const;
-
 function hasCompleteDocumentation(student: Student) {
   return (
     student.condicionesAceptadas &&
     student.proteccionDatosAceptada &&
     student.tutorConfirmado &&
     student.responsabilidadAceptada &&
-    student.derechosImagen !== null &&
     Boolean(student.fechaAceptacionLegal) &&
     Boolean(student.textoLegalVersion) &&
     student.documentationComplete
@@ -193,6 +196,10 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<StudentFormState>(emptyStudentForm);
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   const courseOptions = useMemo(
     () =>
@@ -287,7 +294,11 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
               : null,
           fechaAceptacionLegal: request.fechaAceptacionLegal ?? "",
           textoLegalVersion: request.textoLegalVersion ?? LEGAL_CONSENT_VERSION,
-          notes: request.message ?? ""
+          notes: request.message ?? "",
+          acceptanceName: request.guardian || request.fullName || "",
+          acceptanceRelation:
+            request.age && request.age < 18 ? "Padre, madre o tutor legal" : "",
+          presencialConfirmado: false
         });
         window.sessionStorage.removeItem("samguk-registration-to-student");
       } else {
@@ -340,11 +351,16 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
     value: StudentFormState[TField]
   ) {
     setForm((current) => ({ ...current, [field]: value }));
+    setFormError("");
+    setFormSuccess("");
   }
 
   function openEmptyForm(status: StudentStatus = "Pendiente") {
     setEditingId(null);
     setSelectedStudent(null);
+    setFormError("");
+    setFormSuccess("");
+    setActionError("");
     setForm({
       ...emptyStudentForm,
       status,
@@ -356,50 +372,63 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
   function resetForm() {
     setEditingId(null);
     setForm(emptyStudentForm);
+    setFormError("");
+    setFormSuccess("");
+    setIsSaving(false);
+    setActionError("");
     setIsFormOpen(false);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const age = Number(form.age);
+    const isMinor = Number.isFinite(age) && age < 18;
     const documentationComplete =
       form.condicionesAceptadas &&
       form.proteccionDatosAceptada &&
-      form.tutorConfirmado &&
+      (isMinor ? form.tutorConfirmado : true) &&
       form.responsabilidadAceptada &&
-      form.derechosImagen !== null;
+      form.presencialConfirmado;
 
-    const fechaAceptacionLegal =
-      documentationComplete && !form.fechaAceptacionLegal
-        ? new Date().toISOString()
-        : form.fechaAceptacionLegal;
+    if (!documentationComplete) {
+      setFormError("Completa las autorizaciones obligatorias antes de guardar.");
+      return;
+    }
 
-    const nextStudent: Student = {
-      id: editingId ?? `alu-${Date.now()}`,
-      fullName: form.fullName,
-      age: Number(form.age),
-      birthDate: form.birthDate,
-      guardian: form.guardian,
-      address: form.address,
-      postalCode: form.postalCode,
-      dniNie: form.dniNie,
-      course: form.course,
-      schedule: form.schedule,
-      phone: form.phone,
-      phone2: form.phone2,
-      email: form.email,
-      status: form.status,
-      enrollmentDate: form.enrollmentDate,
-      condicionesAceptadas: form.condicionesAceptadas,
-      proteccionDatosAceptada: form.proteccionDatosAceptada,
-      tutorConfirmado: form.tutorConfirmado,
-      responsabilidadAceptada: form.responsabilidadAceptada,
-      derechosImagen: form.derechosImagen,
-      fechaAceptacionLegal,
-      textoLegalVersion: form.textoLegalVersion || LEGAL_CONSENT_VERSION,
-      documentationComplete,
-      notes: form.notes
-    };
+    setIsSaving(true);
+    setFormError("");
+    setFormSuccess("");
+
+    let response: Response;
+
+    try {
+      response = await fetch("/api/admin/students", {
+        method: editingId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingId,
+          ...form
+        })
+      });
+    } catch {
+      setFormError("No se ha podido conectar con Supabase.");
+      setIsSaving(false);
+      return;
+    }
+
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+      student?: Student;
+    } | null;
+
+    if (!response.ok || !body?.student) {
+      setFormError(body?.message || "No se ha podido guardar el alumno.");
+      setIsSaving(false);
+      return;
+    }
+
+    const nextStudent = body.student;
 
     setStudents((currentStudents) =>
       editingId
@@ -408,6 +437,10 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
           )
         : [nextStudent, ...currentStudents]
     );
+    setSelectedStudent(nextStudent);
+    setActionError("");
+    setFormSuccess("Alumno guardado correctamente.");
+    setIsSaving(false);
     resetForm();
   }
 
@@ -436,24 +469,58 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
       derechosImagen: student.derechosImagen,
       fechaAceptacionLegal: student.fechaAceptacionLegal,
       textoLegalVersion: student.textoLegalVersion,
-      notes: student.notes
+      notes: student.notes,
+      acceptanceName: student.guardian || student.fullName,
+      acceptanceRelation: student.age < 18 ? "Padre, madre o tutor legal" : "",
+      presencialConfirmado: Boolean(student.fechaAceptacionLegal)
     });
+    setFormError("");
+    setFormSuccess("");
+    setActionError("");
     setIsFormOpen(true);
   }
 
   function openStudent(student: Student) {
     setActiveTab("Resumen");
+    setActionError("");
     setSelectedStudent(student);
   }
 
-  function markStudentAsInactive(student: Student) {
-    const nextStudent = { ...student, status: "Baja" as StudentStatus };
+  async function markStudentAsInactive(student: Student) {
+    let response: Response;
+
+    try {
+      response = await fetch("/api/admin/students", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: student.id,
+          deactivate: true
+        })
+      });
+    } catch {
+      setActionError("No se ha podido conectar con Supabase.");
+      return;
+    }
+
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+      student?: Student;
+    } | null;
+
+    if (!response.ok || !body?.student) {
+      setActionError(body?.message || "No se ha podido dar de baja el alumno.");
+      return;
+    }
+
+    const nextStudent = body.student;
 
     setStudents((currentStudents) =>
       currentStudents.map((currentStudent) =>
         currentStudent.id === student.id ? nextStudent : currentStudent
       )
     );
+    setActionError("");
     setSelectedStudent(nextStudent);
   }
 
@@ -637,6 +704,7 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
           onClose={() => setSelectedStudent(null)}
           onEdit={() => editStudent(selectedStudent)}
           onDeactivate={() => markStudentAsInactive(selectedStudent)}
+          error={actionError}
         />
       ) : null}
 
@@ -648,6 +716,9 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
           onCancel={resetForm}
           onSubmit={handleSubmit}
           onUpdate={updateForm}
+          error={formError}
+          success={formSuccess}
+          isSaving={isSaving}
           onDeactivate={() => {
             const selected = students.find((student) => student.id === editingId);
             if (selected) {
@@ -705,7 +776,8 @@ function StudentDetail({
   onTabChange,
   onClose,
   onEdit,
-  onDeactivate
+  onDeactivate,
+  error
 }: {
   student: Student;
   activeTab: StudentTab;
@@ -713,6 +785,7 @@ function StudentDetail({
   onClose: () => void;
   onEdit: () => void;
   onDeactivate: () => void;
+  error: string;
 }) {
   return (
     <div
@@ -785,6 +858,13 @@ function StudentDetail({
         </div>
 
         <div className="p-5 sm:p-6">
+          {error ? (
+            <div className="mb-5 flex gap-3 rounded-[14px] border border-[#C8102E]/25 bg-[#FFF1F4] p-4 text-sm font-semibold text-[#A50D25]">
+              <AlertCircle size={18} strokeWidth={1.8} aria-hidden="true" />
+              {error}
+            </div>
+          ) : null}
+
           {activeTab === "Resumen" ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <StatusCell label="Estado" status={student.status} />
@@ -908,6 +988,46 @@ function InfoBlock({
   );
 }
 
+function LegalAcceptanceCard({
+  title,
+  summary,
+  fullText,
+  checked,
+  onChange
+}: {
+  title: string;
+  summary: string;
+  fullText: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <section className="rounded-[16px] border border-[#E1E7ED] bg-white p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h4 className="font-semibold text-[#0A2540]">{title}</h4>
+          <p className="mt-2 text-sm leading-6 text-[#687586]">{summary}</p>
+        </div>
+        <label className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-[#D8E0E6] px-4 text-sm font-semibold text-[#0A2540]">
+          <input
+            required
+            type="checkbox"
+            checked={checked}
+            onChange={(event) => onChange(event.target.checked)}
+          />
+          Acepto
+        </label>
+      </div>
+      <details className="mt-4 rounded-[12px] border border-[#E1E7ED] bg-[#F8FAFB] p-3 text-sm leading-6 text-[#5B6877]">
+        <summary className="cursor-pointer font-semibold text-[#0A2540]">
+          Ver texto completo
+        </summary>
+        <p className="mt-3 whitespace-pre-line">{fullText}</p>
+      </details>
+    </section>
+  );
+}
+
 function StudentFormModal({
   form,
   editingId,
@@ -915,6 +1035,9 @@ function StudentFormModal({
   onCancel,
   onSubmit,
   onUpdate,
+  error,
+  success,
+  isSaving,
   onDeactivate
 }: {
   form: StudentFormState;
@@ -926,8 +1049,15 @@ function StudentFormModal({
     field: TField,
     value: StudentFormState[TField]
   ) => void;
+  error: string;
+  success: string;
+  isSaving: boolean;
   onDeactivate: () => void;
 }) {
+  const age = Number(form.age);
+  const isMinor = Number.isFinite(age) && age < 18;
+  const hasHistoricConsent = Boolean(form.fechaAceptacionLegal);
+
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-[#061727]/58 px-4 py-6 backdrop-blur-sm sm:px-6"
@@ -948,8 +1078,8 @@ function StudentFormModal({
               {editingId ? form.fullName || "Editar alumno" : "Añadir alumno"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-[#687586]">
-              Actualiza solo la información necesaria. El resto puede completarse
-              más adelante.
+              Completa la ficha y registra la aceptación presencial de las
+              condiciones antes de guardar.
             </p>
           </div>
           <button
@@ -984,9 +1114,9 @@ function StudentFormModal({
               status={
                 form.condicionesAceptadas &&
                 form.proteccionDatosAceptada &&
-                form.tutorConfirmado &&
+                (isMinor ? form.tutorConfirmado : true) &&
                 form.responsabilidadAceptada &&
-                form.derechosImagen !== null
+                form.presencialConfirmado
                   ? "Completo"
                   : "Pendiente"
               }
@@ -1073,14 +1203,16 @@ function StudentFormModal({
 
           <fieldset className="grid gap-4 rounded-[18px] border border-[#E1E7ED] p-4 sm:grid-cols-2">
             <legend className="px-1 text-sm font-semibold text-[#0A2540]">
-              Datos del tutor
+              {isMinor ? "Datos del tutor" : "Contacto"}
             </legend>
             <label className="sm:col-span-2">
               <span className="text-sm font-semibold text-[#0A2540]">
-                Nombre del tutor
+                {isMinor
+                  ? "Padre, madre, tutor legal o persona responsable"
+                  : "Persona de contacto"}
               </span>
               <input
-                required
+                required={isMinor}
                 type="text"
                 value={form.guardian}
                 onChange={(event) => onUpdate("guardian", event.target.value)}
@@ -1182,49 +1314,158 @@ function StudentFormModal({
 
           <fieldset className="grid gap-4 rounded-[18px] border border-[#E1E7ED] p-4 sm:grid-cols-2">
             <legend className="px-1 text-sm font-semibold text-[#0A2540]">
-              Autorizaciones y documentos
+              Aceptación presencial
             </legend>
-            {booleanAuthorizationFields.map(([field, label]) => (
-              <label key={field}>
-                <span className="text-sm font-semibold text-[#0A2540]">
-                  {label}
-                </span>
-                <select
-                  value={String(form[field])}
-                  onChange={(event) =>
-                    onUpdate(field, event.target.value === "true")
-                  }
-                  className={inputClass}
-                >
-                  <option value="false">No</option>
-                  <option value="true">Sí</option>
-                </select>
-              </label>
-            ))}
+            <div className="sm:col-span-2 rounded-[16px] border border-[#E1E7ED] bg-[#F8FAFB] p-4">
+              <p className="text-sm font-semibold text-[#0A2540]">
+                {isMinor
+                  ? "Alumno menor de edad: debe aceptar el tutor legal."
+                  : "Alumno mayor de edad: puede aceptar personalmente."}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[#687586]">
+                El alumno o tutor revisa estas condiciones delante de Leo y
+                confirma su aceptación en este dispositivo.
+              </p>
+            </div>
+
             <label>
               <span className="text-sm font-semibold text-[#0A2540]">
-                Derechos de imagen
+                Nombre completo de quien acepta
               </span>
-              <select
-                value={
-                  form.derechosImagen === null ? "" : String(form.derechosImagen)
-                }
+              <input
+                required
+                type="text"
+                value={form.acceptanceName}
                 onChange={(event) =>
-                  onUpdate(
-                    "derechosImagen",
-                    event.target.value === ""
-                      ? null
-                      : event.target.value === "true"
-                  )
+                  onUpdate("acceptanceName", event.target.value)
                 }
                 className={inputClass}
-              >
-                <option value="">Pendiente</option>
-                <option value="true">Autorizado</option>
-                <option value="false">No autorizado</option>
-              </select>
+              />
             </label>
-            <div className="rounded-[14px] border border-[#E1E7ED] bg-[#F8FAFB] p-3 text-sm leading-6 text-[#5B6877]">
+            {isMinor ? (
+              <label>
+                <span className="text-sm font-semibold text-[#0A2540]">
+                  Relación con el alumno
+                </span>
+                <input
+                  required
+                  type="text"
+                  value={form.acceptanceRelation}
+                  onChange={(event) =>
+                    onUpdate("acceptanceRelation", event.target.value)
+                  }
+                  placeholder="Padre, madre o tutor legal"
+                  className={inputClass}
+                />
+              </label>
+            ) : null}
+
+            <div className="sm:col-span-2 grid gap-3">
+              <LegalAcceptanceCard
+                title="Condiciones generales del club"
+                summary="La persona que acepta confirma que los datos son correctos y que conoce las condiciones generales de participación en el club."
+                fullText={legalConsentSections[0]?.paragraphs.join("\n\n") ?? ""}
+                checked={form.condicionesAceptadas}
+                onChange={(checked) =>
+                  onUpdate("condicionesAceptadas", checked)
+                }
+              />
+              <LegalAcceptanceCard
+                title="Protección de datos"
+                summary="Los datos personales se usarán para la gestión interna del club, la comunicación y la organización de los grupos."
+                fullText={legalConsentSections[1]?.paragraphs.join("\n\n") ?? ""}
+                checked={form.proteccionDatosAceptada}
+                onChange={(checked) =>
+                  onUpdate("proteccionDatosAceptada", checked)
+                }
+              />
+              {isMinor ? (
+                <LegalAcceptanceCard
+                  title="Alumno menor de edad"
+                  summary="El padre, madre o tutor legal confirma que autoriza la inscripción presencial del menor."
+                  fullText={legalConsentSections[2]?.paragraphs.join("\n\n") ?? ""}
+                  checked={form.tutorConfirmado}
+                  onChange={(checked) => onUpdate("tutorConfirmado", checked)}
+                />
+              ) : null}
+              <LegalAcceptanceCard
+                title="Responsabilidad y condiciones deportivas"
+                summary="La persona que acepta entiende la responsabilidad asociada a la práctica deportiva y se compromete a informar de cualquier circunstancia relevante."
+                fullText={legalConsentSections[3]?.paragraphs.join("\n\n") ?? ""}
+                checked={form.responsabilidadAceptada}
+                onChange={(checked) =>
+                  onUpdate("responsabilidadAceptada", checked)
+                }
+              />
+            </div>
+
+            <div className="sm:col-span-2 rounded-[16px] border border-[#E1E7ED] bg-white p-4">
+              <p className="text-sm font-semibold text-[#0A2540]">
+                Derecho de imagen
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[#687586]">
+                Autorización independiente y opcional para fotografías o vídeos
+                del club. Puede quedar pendiente si todavía no se decide.
+              </p>
+              <details className="mt-3 rounded-[12px] border border-[#E1E7ED] bg-[#F8FAFB] p-3 text-sm leading-6 text-[#5B6877]">
+                <summary className="cursor-pointer font-semibold text-[#0A2540]">
+                  Ver texto completo
+                </summary>
+                <p className="mt-3 whitespace-pre-line">
+                  {legalConsentSections[4]?.paragraphs.join("\n\n")}
+                </p>
+              </details>
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                {[
+                  ["true", "Autorizado"],
+                  ["false", "No autorizado"],
+                  ["", "Pendiente"]
+                ].map(([value, label]) => (
+                  <label
+                    key={value || "pending"}
+                    className="flex min-h-11 items-center gap-2 rounded-[12px] border border-[#D8E0E6] px-3 text-sm font-semibold text-[#0A2540]"
+                  >
+                    <input
+                      type="radio"
+                      name="derechosImagen"
+                      checked={
+                        value === ""
+                          ? form.derechosImagen === null
+                          : String(form.derechosImagen) === value
+                      }
+                      onChange={() =>
+                        onUpdate(
+                          "derechosImagen",
+                          value === "" ? null : value === "true"
+                        )
+                      }
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <label className="sm:col-span-2 flex gap-3 rounded-[16px] border border-[#C8102E]/18 bg-[#FFF7F8] p-4 text-sm leading-6 text-[#4F5F70]">
+              <input
+                required
+                type="checkbox"
+                checked={form.presencialConfirmado}
+                onChange={(event) =>
+                  onUpdate("presencialConfirmado", event.target.checked)
+                }
+                className="mt-1"
+              />
+              <span>
+                <span className="font-semibold text-[#0A2540]">
+                  Confirmación presencial.
+                </span>{" "}
+                Confirmo que la persona indicada ha leído y aceptado las
+                condiciones obligatorias en el dispositivo del club.
+              </span>
+            </label>
+
+            <div className="sm:col-span-2 rounded-[14px] border border-[#E1E7ED] bg-[#F8FAFB] p-3 text-sm leading-6 text-[#5B6877]">
               <p>
                 <span className="font-semibold text-[#0A2540]">
                   Fecha de aceptación legal:
@@ -1239,8 +1480,27 @@ function StudentFormModal({
                 </span>{" "}
                 {form.textoLegalVersion || LEGAL_CONSENT_VERSION}
               </p>
+              {hasHistoricConsent ? (
+                <p className="mt-1 text-[#687586]">
+                  La aceptación histórica se conserva al editar otros datos.
+                </p>
+              ) : null}
             </div>
           </fieldset>
+
+          {error ? (
+            <div className="flex gap-3 rounded-[14px] border border-[#C8102E]/25 bg-[#FFF1F4] p-4 text-sm font-semibold text-[#A50D25]">
+              <AlertCircle size={18} strokeWidth={1.8} aria-hidden="true" />
+              {error}
+            </div>
+          ) : null}
+
+          {success ? (
+            <div className="flex gap-3 rounded-[14px] border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+              <CheckCircle2 size={18} strokeWidth={1.8} aria-hidden="true" />
+              {success}
+            </div>
+          ) : null}
 
           <fieldset className="grid gap-4 rounded-[18px] border border-[#E1E7ED] p-4">
             <legend className="px-1 text-sm font-semibold text-[#0A2540]">
@@ -1292,9 +1552,10 @@ function StudentFormModal({
             </button>
             <button
               type="submit"
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#C8102E] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#A50D25]"
+              disabled={isSaving}
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#C8102E] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#A50D25] disabled:cursor-not-allowed disabled:bg-[#8B95A1]"
             >
-              Guardar alumno
+              {isSaving ? "Guardando..." : "Guardar alumno"}
             </button>
           </div>
         </form>

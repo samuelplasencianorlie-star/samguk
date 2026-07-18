@@ -86,7 +86,6 @@ export function hasCompleteStudentDocumentation(student: Student) {
     student.proteccionDatosAceptada &&
     student.tutorConfirmado &&
     student.responsabilidadAceptada &&
-    student.derechosImagen !== null &&
     Boolean(student.fechaAceptacionLegal) &&
     Boolean(student.textoLegalVersion) &&
     student.documentationComplete
