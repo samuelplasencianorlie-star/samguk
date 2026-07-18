@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { checkAdminAccess } from "@/lib/supabase/admin-auth";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 
 export async function updateSupabaseSession(request: NextRequest) {
@@ -37,12 +38,7 @@ export async function updateSupabaseSession(request: NextRequest) {
     return { response, user: null };
   }
 
-  const { data: profile } = await supabase
-    .from("admin_profiles")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("active", true)
-    .maybeSingle();
+  const { allowed } = await checkAdminAccess(supabase);
 
-  return { response, user: profile ? user : null };
+  return { response, user: allowed ? user : null };
 }

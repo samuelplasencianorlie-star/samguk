@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { checkAdminAccess } from "@/lib/supabase/admin-auth";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
@@ -177,15 +178,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("admin_profiles")
-    .select("id")
-    .eq("user_id", sessionData.user.id)
-    .eq("active", true)
-    .maybeSingle();
+  const { allowed, error: profileError } = await checkAdminAccess(supabase);
 
   console.info("[samguk-login] profile check", {
-    hasProfile: Boolean(profile),
+    userId: sessionData.user.id,
+    hasProfile: allowed,
     error: profileError?.message || null
   });
 
@@ -197,7 +194,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!profile) {
+  if (!allowed) {
     await supabase.auth.signOut();
     return NextResponse.json(
       { message: "Este usuario no está autorizado para acceder al panel." },
