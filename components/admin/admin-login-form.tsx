@@ -19,7 +19,9 @@ export function AdminLoginForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!email.trim() || !password.trim()) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
       setError("Introduce usuario y contraseña para acceder al panel.");
       return;
     }
@@ -29,7 +31,7 @@ export function AdminLoginForm() {
     const response = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email: normalizedEmail, password })
     });
 
     if (!response.ok) {
@@ -57,11 +59,11 @@ export function AdminLoginForm() {
 
       <div className="mt-8">
         <label className="block text-sm font-semibold text-white">
-          Email o usuario
+          Email
           <input
             required
-            type="text"
-            autoComplete="username"
+            type="email"
+            autoComplete="email"
             value={email}
             onChange={(event) => {
               setEmail(event.target.value);

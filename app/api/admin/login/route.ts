@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerClient } from "@supabase/ssr";
+import { getSupabaseConfig } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
 
@@ -30,12 +30,17 @@ function isRateLimited(key: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const { email, password } = (await request.json().catch(() => ({}))) as {
-    email?: string;
-    password?: string;
+  const body = (await request.json().catch(() => ({}))) as {
+    email?: unknown;
+    password?: unknown;
   };
+  const email =
+    typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const password = typeof body.password === "string" ? body.password : "";
 
-  if (!isSupabaseConfigured()) {
+  const config = getSupabaseConfig();
+
+  if (!config) {
     return NextResponse.json(
       {
         message:
@@ -45,7 +50,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!email?.trim() || !password?.trim()) {
+  if (!email || !password) {
     return NextResponse.json(
       { message: "Introduce usuario y contraseña." },
       { status: 400 }
@@ -61,12 +66,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const supabase = await createSupabaseServerClient();
+  const response = NextResponse.json({ ok: true });
+  const supabase = createServerClient(config.url, config.anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+      }
+    }
+  });
+
   const {
     data: { user },
     error
   } = await supabase.auth.signInWithPassword({
-    email: email.trim(),
+    email,
     password
   });
 
@@ -84,12 +102,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("admin_profiles")
     .select("id")
     .eq("user_id", user.id)
     .eq("active", true)
     .maybeSingle();
+
+  if (profileError) {
+    await supabase.auth.signOut();
+    return NextResponse.json(
+      { message: "No se ha podido verificar el acceso privado." },
+      { status: 500 }
+    );
+  }
 
   if (!profile) {
     await supabase.auth.signOut();
@@ -100,5 +126,5 @@ export async function POST(request: NextRequest) {
   }
 
   attempts.delete(attemptKey);
-  return NextResponse.json({ ok: true });
+  return response;
 }
