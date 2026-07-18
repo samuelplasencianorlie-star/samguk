@@ -111,16 +111,27 @@ export async function POST(request: NextRequest) {
   });
   console.info("[samguk-login] calling supabase auth password endpoint");
 
-  const authResponse = await fetch(authUrl.toString(), {
-    method: "POST",
-    headers: {
-      apikey: config.anonKey,
-      authorization: `Bearer ${config.anonKey}`,
-      "content-type": "application/json"
-    },
-    body: JSON.stringify({ email, password }),
-    cache: "no-store"
-  });
+  let authResponse: Response;
+
+  try {
+    authResponse = await fetch(authUrl.toString(), {
+      method: "POST",
+      headers: {
+        apikey: config.anonKey,
+        authorization: `Bearer ${config.anonKey}`,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ email, password }),
+      cache: "no-store"
+    });
+  } catch (error) {
+    console.error("[samguk-login] supabase auth fetch failed", error);
+    return NextResponse.json(
+      { message: "No se ha podido conectar con Supabase Auth." },
+      { status: 503 }
+    );
+  }
+
   const authBody = (await authResponse
     .json()
     .catch(() => ({}))) as SupabasePasswordResponse;
