@@ -29,6 +29,28 @@ function isRateLimited(key: string) {
   return current.count > MAX_ATTEMPTS;
 }
 
+function maskEmail(email: string) {
+  const [name, domain] = email.split("@");
+
+  if (!name || !domain) {
+    return "invalid-email";
+  }
+
+  return `${name.slice(0, 2)}***@${domain}`;
+}
+
+type SupabasePasswordResponse = {
+  access_token?: string;
+  refresh_token?: string;
+  user?: {
+    id?: string;
+    email?: string;
+  };
+  error?: string;
+  error_description?: string;
+  msg?: string;
+};
+
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as {
     email?: unknown;
@@ -80,34 +102,81 @@ export async function POST(request: NextRequest) {
     }
   });
 
-  const {
-    data: { user },
-    error
-  } = await supabase.auth.signInWithPassword({
-    email,
-    password
+  const authUrl = new URL("/auth/v1/token", config.url);
+  authUrl.searchParams.set("grant_type", "password");
+
+  console.info("[samguk-login] route hit", {
+    email: maskEmail(email),
+    supabaseHost: authUrl.host
+  });
+  console.info("[samguk-login] calling supabase auth password endpoint");
+
+  const authResponse = await fetch(authUrl.toString(), {
+    method: "POST",
+    headers: {
+      apikey: config.anonKey,
+      authorization: `Bearer ${config.anonKey}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ email, password }),
+    cache: "no-store"
+  });
+  const authBody = (await authResponse
+    .json()
+    .catch(() => ({}))) as SupabasePasswordResponse;
+
+  console.info("[samguk-login] supabase auth response", {
+    status: authResponse.status,
+    hasAccessToken: Boolean(authBody.access_token),
+    hasRefreshToken: Boolean(authBody.refresh_token),
+    hasUser: Boolean(authBody.user?.id),
+    error: authBody.error || authBody.msg || null
   });
 
-  if (error) {
+  if (!authResponse.ok) {
     return NextResponse.json(
       { message: "Usuario o contraseña incorrectos." },
       { status: 401 }
     );
   }
 
-  if (!user) {
+  if (!authBody.access_token || !authBody.refresh_token || !authBody.user?.id) {
     return NextResponse.json(
       { message: "No se ha podido iniciar sesión." },
       { status: 401 }
     );
   }
 
+  const { data: sessionData, error: sessionError } =
+    await supabase.auth.setSession({
+      access_token: authBody.access_token,
+      refresh_token: authBody.refresh_token
+    });
+
+  console.info("[samguk-login] session set", {
+    hasSession: Boolean(sessionData.session),
+    hasUser: Boolean(sessionData.user?.id),
+    error: sessionError?.message || null
+  });
+
+  if (sessionError || !sessionData.user) {
+    return NextResponse.json(
+      { message: "No se ha podido guardar la sesión." },
+      { status: 500 }
+    );
+  }
+
   const { data: profile, error: profileError } = await supabase
     .from("admin_profiles")
     .select("id")
-    .eq("user_id", user.id)
+    .eq("user_id", sessionData.user.id)
     .eq("active", true)
     .maybeSingle();
+
+  console.info("[samguk-login] profile check", {
+    hasProfile: Boolean(profile),
+    error: profileError?.message || null
+  });
 
   if (profileError) {
     await supabase.auth.signOut();
