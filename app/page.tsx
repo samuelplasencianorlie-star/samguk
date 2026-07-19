@@ -19,6 +19,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/public/reveal";
 import { SiteHeader } from "@/components/public/site-header";
+import { SpaceCarousel } from "@/components/public/space-carousel";
 import { usePublicLanguage } from "@/components/public/language-switch";
 import { publicTranslations } from "@/lib/public-translations";
 import { siteConfig } from "@/lib/site-config";
@@ -355,11 +356,17 @@ export default function Home() {
                       {siteConfig.fullName}
                     </p>
                   </div>
-                  <div className="bg-white/[0.06] p-5 backdrop-blur">
+                  <div className="min-w-0 bg-white/[0.06] p-5 backdrop-blur">
                     <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/[0.42]">
                       {home.space.address}
                     </span>
-                    <p className="mt-3 text-lg font-semibold">
+                    <p
+                      className="mt-3 max-w-full whitespace-normal break-words text-sm font-semibold leading-6 sm:text-lg sm:leading-7"
+                      style={{
+                        maxWidth: "calc(100vw - 4rem)",
+                        overflowWrap: "anywhere"
+                      }}
+                    >
                       {siteConfig.contact.address}
                     </p>
                   </div>
@@ -367,12 +374,7 @@ export default function Home() {
               </div>
             </Reveal>
             <Reveal delay={100}>
-              <PhotoPanel
-                src={siteConfig.assets.photos.clubSpace}
-                alt="Sala de entrenamiento de Samguk Cabo Blanco"
-                className="aspect-[16/10] min-h-[360px] lg:min-h-[520px]"
-                sizes="(max-width: 1024px) 100vw, 58vw"
-              />
+              <SpaceCarousel />
             </Reveal>
           </div>
         </section>
