@@ -149,7 +149,7 @@ export function SiteHeader() {
           </div>
           <Link
             href={cta.href}
-            className={`header-cta inline-flex min-h-10 items-center justify-center rounded-[8px] px-3 text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:min-h-11 sm:px-5 sm:text-sm ${
+            className={`header-cta hidden min-h-10 items-center justify-center rounded-[8px] px-3 text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:inline-flex sm:min-h-11 sm:px-5 sm:text-sm ${
               isRegistrationPage
                 ? "border border-[#CAD2DA] bg-white text-[#0A2540] hover:bg-[#F3F6F8] focus-visible:ring-[#174EA6]"
                 : "bg-[#C8102E] text-white hover:bg-[#A50D25] focus-visible:ring-[#C8102E]"

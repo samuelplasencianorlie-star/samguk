@@ -31,7 +31,26 @@ const quickLinks = [
   { label: "Inscripción", href: "/inscripcion", icon: ArrowRight }
 ];
 
-const scheduleBlocks = [...siteConfig.trainingSchedule];
+const publicScheduleBlocks = siteConfig.trainingSchedule.map((block) =>
+  block.days === "Martes · Jueves"
+    ? {
+        ...block,
+        items: [
+          { time: "16:15 — 17:15", label: "Curso 5" },
+          { time: "17:20 — 18:20", label: "Curso 6" },
+          ...block.items
+        ]
+      }
+    : block
+);
+const publicCourseLabels: Record<string, string> = {
+  "Curso 1": "Course 1",
+  "Curso 2": "Course 2",
+  "Curso 3": "Course 3",
+  "Curso 4": "Course 4",
+  "Curso 5": "Course 5",
+  "Curso 6": "Course 6"
+};
 const contactEmailHref = siteConfig.contact.email
   ? `mailto:${siteConfig.contact.email}`
   : undefined;
@@ -144,7 +163,7 @@ export default function Home() {
     label: home.quick[index] || item.label
   }));
   const localizedGroups = home.training.cards;
-  const localizedScheduleBlocks = scheduleBlocks.map((block) => ({
+  const localizedScheduleBlocks = publicScheduleBlocks.map((block) => ({
     ...block,
     items: block.items.map((item) => {
       if (language === "es") {
@@ -152,15 +171,7 @@ export default function Home() {
       }
 
       const label =
-        item.label === "Curso 1"
-          ? "Course 1"
-          : item.label === "Curso 2"
-            ? "Course 2"
-            : item.label === "Curso 3"
-              ? "Course 3"
-              : item.label === "Curso 4"
-                ? "Course 4"
-                : "Combat competition technical program";
+        publicCourseLabels[item.label] || "Combat competition technical program";
 
       return { ...item, label };
     })
@@ -235,10 +246,10 @@ export default function Home() {
             <p className="hero-values hero-rise hero-delay-1 mt-8 text-sm font-semibold tracking-[0.18em] text-[#E45D6E] sm:mt-10 sm:text-base">
               {home.hero.label}
             </p>
-            <p className="hero-rise hero-delay-2 mt-4 max-w-[34rem] text-base leading-7 text-white/[0.76] sm:text-xl sm:leading-8">
+            <p className="hero-rise hero-delay-2 mt-4 w-full max-w-[21rem] px-1 text-base leading-7 text-white/[0.76] sm:max-w-[34rem] sm:px-0 sm:text-xl sm:leading-8">
               {copy.site.description}
             </p>
-            <div className="hero-rise hero-delay-3 mt-8 flex w-full max-w-[28rem] flex-col justify-center gap-3 sm:flex-row">
+            <div className="hero-rise hero-delay-3 mt-8 flex w-full max-w-[21rem] flex-col justify-center gap-3 sm:max-w-[28rem] sm:flex-row">
               <Link
                 href="/inscripcion"
                 className="hero-primary-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-[#C8102E] px-6 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-px hover:bg-[#A50D25] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A2540] sm:min-w-[12.5rem]"
@@ -544,11 +555,11 @@ export default function Home() {
 
         <section
           id="inscripcion-info"
-          className="scroll-mt-24 bg-white py-16 sm:py-20 lg:py-24"
+          className="scroll-mt-24 bg-white py-14 sm:py-16 lg:py-20"
         >
           <div className="mx-auto max-w-[1440px] px-5 lg:px-8">
             <Reveal>
-              <div className="cta-panel relative isolate overflow-hidden border border-[#D8E0E6] bg-[#0A2540] px-6 py-8 text-white sm:px-8 sm:py-10 lg:px-10 lg:py-11">
+              <div className="cta-panel relative isolate overflow-hidden border border-[#D8E0E6] bg-[#0A2540] px-6 py-8 text-white sm:px-8 sm:py-10 lg:px-10">
                 <div
                   className="absolute right-[-5rem] top-[-4rem] h-72 w-72 rounded-full border border-white/[0.08]"
                   aria-hidden="true"
@@ -557,50 +568,33 @@ export default function Home() {
                   className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-[#C8102E] via-white/20 to-transparent"
                   aria-hidden="true"
                 />
-                <div className="relative grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
-                  <div className="max-w-2xl">
+                <div className="relative flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+                  <div className="max-w-3xl">
                     <p className="section-eyebrow text-[#E45D6E]">
                       {home.enrollment.eyebrow}
                     </p>
-                    <h2 className="mt-4 text-[clamp(2.35rem,4.6vw,5rem)] font-semibold leading-[0.92] tracking-[-0.055em]">
+                    <h2 className="mt-4 text-[clamp(2.25rem,4vw,4.6rem)] font-semibold leading-[0.94] tracking-[-0.055em]">
                       {home.enrollment.title}
                     </h2>
                     <p className="mt-6 max-w-lg text-sm leading-6 text-white/[0.7]">
                       {home.enrollment.intro}
                     </p>
-                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                      <Link
-                        href="/inscripcion"
-                        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] bg-[#C8102E] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#A50D25] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A2540]"
-                      >
-                        {home.enrollment.primary}
-                        <ArrowRight size={17} aria-hidden="true" />
-                      </Link>
-                      <a
-                        href="#horarios"
-                        className="inline-flex min-h-12 items-center justify-center rounded-[6px] border border-white/[0.18] bg-white/[0.05] px-6 text-sm font-semibold text-white transition-colors hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                      >
-                        {home.enrollment.secondary}
-                      </a>
-                    </div>
                   </div>
 
-                  <div className="grid gap-px overflow-hidden border border-white/[0.14] bg-white/[0.14] sm:grid-cols-3 lg:grid-cols-1">
-                    {home.enrollment.steps.map((item, index) => (
-                      <div key={item.label} className="bg-white/[0.06] p-5 backdrop-blur">
-                        <div className="flex items-center gap-3">
-                          <span className="grid h-9 w-9 place-items-center border border-white/[0.16] text-xs font-semibold tabular-nums text-[#E45D6E]">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                          <h3 className="text-base font-semibold">
-                            {item.label}
-                          </h3>
-                        </div>
-                        <p className="mt-4 text-sm leading-6 text-white/[0.66]">
-                          {item.detail}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:justify-end">
+                    <Link
+                      href="/inscripcion"
+                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] bg-[#C8102E] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#A50D25] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A2540]"
+                    >
+                      {home.enrollment.primary}
+                      <ArrowRight size={17} aria-hidden="true" />
+                    </Link>
+                    <a
+                      href="#horarios"
+                      className="inline-flex min-h-12 items-center justify-center rounded-[6px] border border-white/[0.18] bg-white/[0.05] px-6 text-sm font-semibold text-white transition-colors hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    >
+                      {home.enrollment.secondary}
+                    </a>
                   </div>
                 </div>
               </div>

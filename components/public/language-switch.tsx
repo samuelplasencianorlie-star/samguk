@@ -87,13 +87,23 @@ export function LanguageSwitch({ tone = "dark" }: { tone?: "dark" | "light" }) {
 
   return (
     <div
-      className={`inline-flex rounded-full border p-1 text-[11px] font-semibold uppercase tracking-[0.12em] backdrop-blur ${
+      className={`language-switch group relative inline-grid grid-cols-2 rounded-full border p-1 text-[11px] font-semibold uppercase tracking-[0.12em] shadow-[0_14px_34px_rgba(10,37,64,0.08)] backdrop-blur-xl transition-all duration-300 ${
         isLight
-          ? "border-white/[0.16] bg-white/[0.06]"
-          : "border-[#D8E0E6] bg-white"
+          ? "border-white/[0.16] bg-white/[0.08] shadow-[0_18px_42px_rgba(0,0,0,0.18)] hover:border-white/[0.28]"
+          : "border-[#D8E0E6] bg-white/95 hover:border-[#B8C5D0]"
       }`}
       aria-label={copy.languageLabel}
     >
+      <span
+        className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%_-_0.25rem)] rounded-full transition-transform duration-300 ease-out ${
+          language === "en" ? "translate-x-full" : "translate-x-0"
+        } ${
+          isLight
+            ? "bg-white shadow-[0_10px_26px_rgba(0,0,0,0.24)]"
+            : "bg-[#0A2540] shadow-[0_10px_24px_rgba(10,37,64,0.18)]"
+        }`}
+        aria-hidden="true"
+      />
       {(["es", "en"] as const).map((item) => (
         <a
           key={item}
@@ -102,14 +112,14 @@ export function LanguageSwitch({ tone = "dark" }: { tone?: "dark" | "light" }) {
             event.preventDefault();
             handleChange(item);
           }}
-          className={`min-h-8 rounded-full px-2.5 transition-colors ${
+          className={`relative z-10 inline-flex min-h-8 min-w-10 items-center justify-center rounded-full px-3 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 ${
             language === item
               ? isLight
-                ? "bg-white text-[#0A2540]"
-                : "bg-[#0A2540] text-white"
+                ? "text-[#0A2540]"
+                : "text-white"
               : isLight
-                ? "text-white/62 hover:text-white"
-                : "text-[#687586] hover:text-[#0A2540]"
+                ? "text-white/58 hover:text-white focus-visible:ring-white/70"
+                : "text-[#687586] hover:text-[#0A2540] focus-visible:ring-[#174EA6]"
           }`}
           aria-current={language === item ? "true" : undefined}
         >

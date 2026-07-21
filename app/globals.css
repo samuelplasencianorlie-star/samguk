@@ -13,12 +13,14 @@
 }
 
 html {
+  overflow-x: clip;
   scroll-behavior: smooth;
   scroll-padding-top: 88px;
 }
 
 body {
   margin: 0;
+  overflow-x: clip;
   background: #ffffff;
   color: #111318;
   font-family:
@@ -46,7 +48,8 @@ a {
 }
 
 .public-site {
-  overflow: clip;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .section-eyebrow {
@@ -179,6 +182,29 @@ a {
   background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+@media (max-width: 639px) {
+  .site-header nav {
+    position: relative;
+    width: 100vw;
+    max-width: 100vw;
+  }
+
+  .site-header .header-menu-button {
+    position: fixed;
+    top: 1.125rem;
+    right: 0.75rem;
+    z-index: 55;
+    display: grid !important;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  .site-header .header-menu-button:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .nav-link::after {
@@ -1187,6 +1213,11 @@ a {
 }
 
 @media (max-width: 767px) {
+  .hero-centered-content {
+    width: min(calc(100vw - 2.5rem), 350px);
+    max-width: min(calc(100vw - 2.5rem), 350px);
+  }
+
   .hero-geometry {
     inset: 76px 0 0;
     opacity: 0.82;
