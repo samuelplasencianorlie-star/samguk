@@ -101,6 +101,20 @@ function optionalText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function nullableText(value: unknown) {
+  const normalized = optionalText(value);
+  return normalized || null;
+}
+
+function optionalAge(value: unknown) {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+
+  const age = Number(value);
+  return Number.isFinite(age) && age >= 0 && age <= 120 ? age : null;
+}
+
 function bool(value: unknown) {
   return value === true;
 }
@@ -237,50 +251,34 @@ async function recordLegalAcceptance(
 }
 
 function validatePayload(payload: StudentPayload) {
-  const age = Number(payload.age);
+  const age = optionalAge(payload.age);
   const status = allowedStatuses.includes(payload.status as StudentStatus)
     ? (payload.status as StudentStatus)
     : "Pendiente";
-  const isMinor = Number.isFinite(age) && age < 18;
+  const isMinor = age !== null && age < 18;
   const fullName = text(payload.fullName);
   const guardian = optionalText(payload.guardian);
-  const acceptanceName = text(payload.acceptanceName);
+  const acceptanceName = optionalText(payload.acceptanceName);
   const acceptanceRelation = optionalText(payload.acceptanceRelation);
   const condicionesAceptadas = bool(payload.condicionesAceptadas);
   const proteccionDatosAceptada = bool(payload.proteccionDatosAceptada);
-  const tutorConfirmado = isMinor ? bool(payload.tutorConfirmado) : true;
+  const tutorConfirmado = bool(payload.tutorConfirmado);
   const responsabilidadAceptada = bool(payload.responsabilidadAceptada);
   const presencialConfirmado = bool(payload.presencialConfirmado);
   const errors: string[] = [];
 
-  if (!fullName) errors.push("Introduce el nombre completo del alumno.");
-  if (!Number.isFinite(age) || age < 3)
-    errors.push("Introduce una edad válida.");
-  if (!text(payload.birthDate))
-    errors.push("Introduce la fecha de nacimiento.");
-  if (!text(payload.dniNie)) errors.push("Introduce el DNI/NIE.");
-  if (!text(payload.address)) errors.push("Introduce la dirección.");
-  if (!text(payload.postalCode)) errors.push("Introduce el código postal.");
-  if (!text(payload.phone)) errors.push("Introduce el teléfono principal.");
-  if (!text(payload.email)) errors.push("Introduce el email.");
-  if (!text(payload.course)) errors.push("Selecciona el grupo.");
-  if (!text(payload.enrollmentDate)) errors.push("Introduce la fecha de alta.");
-  if (isMinor && !guardian)
-    errors.push("Introduce el nombre del padre, madre o tutor legal.");
-  if (!acceptanceName)
-    errors.push("Introduce el nombre completo de quien acepta.");
-  if (isMinor && !acceptanceRelation)
-    errors.push("Indica la relación con el alumno.");
-  if (!condicionesAceptadas)
-    errors.push("Acepta las condiciones generales del club.");
-  if (!proteccionDatosAceptada)
-    errors.push("Acepta la información de protección de datos.");
-  if (isMinor && !tutorConfirmado)
-    errors.push("Confirma la autorización del tutor legal.");
-  if (!responsabilidadAceptada)
-    errors.push("Acepta la responsabilidad asociada a la práctica deportiva.");
-  if (!presencialConfirmado)
-    errors.push("Confirma presencialmente la aceptación legal.");
+  if (fullName.length < 2) {
+    errors.push("Introduce el nombre y los apellidos del alumno.");
+  }
+
+  if (
+    payload.age !== "" &&
+    payload.age !== null &&
+    payload.age !== undefined &&
+    age === null
+  ) {
+    errors.push("La edad indicada no es válida.");
+  }
 
   return {
     errors,
@@ -298,6 +296,22 @@ function validatePayload(payload: StudentPayload) {
       tutorConfirmado
     }
   };
+}
+
+function hasCompleteLegalAcceptance(
+  value: ReturnType<typeof validatePayload>["value"]
+) {
+  return Boolean(
+    value.acceptanceName &&
+      value.condicionesAceptadas &&
+      value.proteccionDatosAceptada &&
+      value.responsabilidadAceptada &&
+      value.presencialConfirmado &&
+      (!value.isMinor ||
+        (value.guardian &&
+          value.acceptanceRelation &&
+          value.tutorConfirmado))
+  );
 }
 
 function selectStudentColumns() {
@@ -402,48 +416,53 @@ export async function POST(request: NextRequest) {
     return errorResponse(errors[0]);
   }
 
-  const acceptedAt = new Date().toISOString();
+  const legalAcceptanceComplete = hasCompleteLegalAcceptance(value);
+  const acceptedAt = legalAcceptanceComplete ? new Date().toISOString() : null;
   const version = text(payload.textoLegalVersion) || LEGAL_CONSENT_VERSION;
   const imageRights = imageConsent(payload.derechosImagen);
   const baseNotes = optionalText(payload.notes);
-  const legalTrace = buildLegalTrace({
-    acceptedAt,
-    acceptedBy: value.acceptanceName,
-    adminId: auth.user.id,
-    imageRights,
-    isMinor: value.isMinor,
-    relation: value.acceptanceRelation,
-    studentName: text(payload.fullName),
-    tutorName: value.guardian,
-    version
-  });
+  const legalTrace = acceptedAt
+    ? buildLegalTrace({
+        acceptedAt,
+        acceptedBy: value.acceptanceName,
+        adminId: auth.user.id,
+        imageRights,
+        isMinor: value.isMinor,
+        relation: value.acceptanceRelation,
+        studentName: text(payload.fullName),
+        tutorName: value.guardian,
+        version
+      })
+    : "";
 
   const { data, error } = await auth.supabase
     .from("students")
     .insert({
       full_name: text(payload.fullName),
       age: value.age,
-      birth_date: text(payload.birthDate),
-      guardian: value.guardian,
-      address: text(payload.address),
-      postal_code: text(payload.postalCode),
-      dni_nie: text(payload.dniNie),
-      group_name: text(payload.course),
-      schedule: optionalText(payload.schedule),
-      phone: text(payload.phone),
-      phone2: optionalText(payload.phone2),
-      email: text(payload.email).toLowerCase(),
+      birth_date: nullableText(payload.birthDate),
+      guardian: nullableText(payload.guardian),
+      address: nullableText(payload.address),
+      postal_code: nullableText(payload.postalCode),
+      dni_nie: nullableText(payload.dniNie),
+      group_name: nullableText(payload.course),
+      schedule: nullableText(payload.schedule),
+      phone: nullableText(payload.phone),
+      phone2: nullableText(payload.phone2),
+      email: nullableText(payload.email)?.toLowerCase() ?? null,
       status: value.status,
-      enrollment_date: text(payload.enrollmentDate),
+      enrollment_date:
+        nullableText(payload.enrollmentDate) ??
+        new Date().toISOString().slice(0, 10),
       condiciones_aceptadas: value.condicionesAceptadas,
       proteccion_datos_aceptada: value.proteccionDatosAceptada,
       tutor_confirmado: value.tutorConfirmado,
       responsabilidad_aceptada: value.responsabilidadAceptada,
       derechos_imagen: imageRights,
       fecha_aceptacion_legal: acceptedAt,
-      texto_legal_version: version,
-      documentation_complete: true,
-      notes: baseNotes ? `${baseNotes}\n\n${legalTrace}` : legalTrace,
+      texto_legal_version: acceptedAt ? version : null,
+      documentation_complete: legalAcceptanceComplete,
+      notes: [baseNotes, legalTrace].filter(Boolean).join("\n\n") || null,
       created_by: auth.user.id,
       updated_by: auth.user.id
     })
@@ -456,18 +475,20 @@ export async function POST(request: NextRequest) {
 
   const savedStudent = data as unknown as StudentRow;
 
-  await recordLegalAcceptance(auth.supabase, {
-    acceptedAt,
-    acceptedBy: value.acceptanceName,
-    adminId: auth.user.id,
-    imageRights,
-    isMinor: value.isMinor,
-    relation: value.acceptanceRelation,
-    studentId: savedStudent.id,
-    studentName: text(payload.fullName),
-    tutorName: value.guardian,
-    version
-  });
+  if (acceptedAt) {
+    await recordLegalAcceptance(auth.supabase, {
+      acceptedAt,
+      acceptedBy: value.acceptanceName,
+      adminId: auth.user.id,
+      imageRights,
+      isMinor: value.isMinor,
+      relation: value.acceptanceRelation,
+      studentId: savedStudent.id,
+      studentName: text(payload.fullName),
+      tutorName: value.guardian,
+      version
+    });
+  }
 
   const payments = await getStudentPayments(auth.supabase, savedStudent.id);
 
@@ -529,59 +550,65 @@ export async function PATCH(request: NextRequest) {
 
   const existingRow = existing as unknown as StudentRow;
   const hasHistoricAcceptance = Boolean(existingRow.fecha_aceptacion_legal);
-  const acceptedAt: string = hasHistoricAcceptance
-    ? existingRow.fecha_aceptacion_legal || new Date().toISOString()
-    : new Date().toISOString();
-  const version: string = hasHistoricAcceptance
+  const legalAcceptanceComplete = hasCompleteLegalAcceptance(value);
+  const acceptedAt = hasHistoricAcceptance
+    ? existingRow.fecha_aceptacion_legal
+    : legalAcceptanceComplete
+      ? new Date().toISOString()
+      : null;
+  const version = hasHistoricAcceptance
     ? existingRow.texto_legal_version || LEGAL_CONSENT_VERSION
     : text(payload.textoLegalVersion) || LEGAL_CONSENT_VERSION;
   const imageRights = imageConsent(payload.derechosImagen);
   const baseNotes = optionalText(payload.notes);
   const nextNotes = hasHistoricAcceptance
     ? preserveLegalTrace(existingRow.notes, baseNotes)
-    : [
-        baseNotes,
-        buildLegalTrace({
-          acceptedAt,
-          acceptedBy: value.acceptanceName,
-          adminId: auth.user.id,
-          imageRights,
-          isMinor: value.isMinor,
-          relation: value.acceptanceRelation,
-          studentName: text(payload.fullName),
-          tutorName: value.guardian,
-          version
-        })
-      ]
-        .filter(Boolean)
-        .join("\n\n");
+    : acceptedAt
+      ? [
+          baseNotes,
+          buildLegalTrace({
+            acceptedAt,
+            acceptedBy: value.acceptanceName,
+            adminId: auth.user.id,
+            imageRights,
+            isMinor: value.isMinor,
+            relation: value.acceptanceRelation,
+            studentName: text(payload.fullName),
+            tutorName: value.guardian,
+            version
+          })
+        ]
+          .filter(Boolean)
+          .join("\n\n")
+      : baseNotes;
 
   const { data, error } = await auth.supabase
     .from("students")
     .update({
       full_name: text(payload.fullName),
       age: value.age,
-      birth_date: text(payload.birthDate),
-      guardian: value.guardian,
-      address: text(payload.address),
-      postal_code: text(payload.postalCode),
-      dni_nie: text(payload.dniNie),
-      group_name: text(payload.course),
-      schedule: optionalText(payload.schedule),
-      phone: text(payload.phone),
-      phone2: optionalText(payload.phone2),
-      email: text(payload.email).toLowerCase(),
+      birth_date: nullableText(payload.birthDate),
+      guardian: nullableText(payload.guardian),
+      address: nullableText(payload.address),
+      postal_code: nullableText(payload.postalCode),
+      dni_nie: nullableText(payload.dniNie),
+      group_name: nullableText(payload.course),
+      schedule: nullableText(payload.schedule),
+      phone: nullableText(payload.phone),
+      phone2: nullableText(payload.phone2),
+      email: nullableText(payload.email)?.toLowerCase() ?? null,
       status: value.status,
-      enrollment_date: text(payload.enrollmentDate),
+      enrollment_date: nullableText(payload.enrollmentDate),
       condiciones_aceptadas: value.condicionesAceptadas,
       proteccion_datos_aceptada: value.proteccionDatosAceptada,
       tutor_confirmado: value.tutorConfirmado,
       responsabilidad_aceptada: value.responsabilidadAceptada,
       derechos_imagen: imageRights,
       fecha_aceptacion_legal: acceptedAt,
-      texto_legal_version: version,
-      documentation_complete: true,
-      notes: nextNotes,
+      texto_legal_version: acceptedAt ? version : null,
+      documentation_complete:
+        hasHistoricAcceptance || legalAcceptanceComplete,
+      notes: nextNotes || null,
       updated_by: auth.user.id
     })
     .eq("id", id)
@@ -594,7 +621,7 @@ export async function PATCH(request: NextRequest) {
 
   const savedStudent = data as unknown as StudentRow;
 
-  if (!hasHistoricAcceptance) {
+  if (!hasHistoricAcceptance && acceptedAt) {
     await recordLegalAcceptance(auth.supabase, {
       acceptedAt,
       acceptedBy: value.acceptanceName,

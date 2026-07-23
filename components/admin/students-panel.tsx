@@ -28,6 +28,7 @@ import {
   formatPaymentMonth,
   getPaymentMonthKey
 } from "@/lib/payment-utils";
+import { hasEssentialStudentData } from "@/lib/student-completeness";
 
 type StudentsPanelProps = {
   initialStudents: Student[];
@@ -450,20 +451,6 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const age = Number(form.age);
-    const isMinor = Number.isFinite(age) && age < 18;
-    const documentationComplete =
-      form.condicionesAceptadas &&
-      form.proteccionDatosAceptada &&
-      (isMinor ? form.tutorConfirmado : true) &&
-      form.responsabilidadAceptada &&
-      form.presencialConfirmado;
-
-    if (!documentationComplete) {
-      setFormError("Completa las autorizaciones obligatorias antes de guardar.");
-      return;
-    }
-
     setIsSaving(true);
     setFormError("");
     setFormSuccess("");
@@ -517,7 +504,7 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
     setSelectedStudent(null);
     setForm({
       fullName: student.fullName,
-      age: String(student.age),
+      age: student.age > 0 ? String(student.age) : "",
       birthDate: student.birthDate,
       guardian: student.guardian,
       address: student.address,
@@ -866,9 +853,16 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-semibold tracking-[-0.03em] text-[#0A2540]">
-                      {student.fullName}
-                    </h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-semibold tracking-[-0.03em] text-[#0A2540]">
+                        {student.fullName}
+                      </h3>
+                      {!hasEssentialStudentData(student) ? (
+                        <span className="rounded-full border border-[#D8E0E6] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#7B8794]">
+                          Pendiente de completar
+                        </span>
+                      ) : null}
+                    </div>
                     <p className="mt-1 text-sm text-[#687586]">
                       {student.course || "Sin grupo"}
                     </p>
@@ -1328,7 +1322,6 @@ function LegalAcceptanceCard({
         </div>
         <label className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-[#D8E0E6] px-4 text-sm font-semibold text-[#0A2540]">
           <input
-            required
             type="checkbox"
             checked={checked}
             onChange={(event) => onChange(event.target.checked)}
@@ -1411,6 +1404,10 @@ function StudentFormModal({
         </div>
 
         <form onSubmit={onSubmit} className="grid gap-5 p-5 sm:p-6">
+          <p className="rounded-[14px] border border-[#D8E0E6] bg-[#F8FAFB] px-4 py-3 text-sm leading-6 text-[#52606E]">
+            Para guardar ahora solo necesitas el nombre y los apellidos. El resto
+            se puede completar o editar más tarde.
+          </p>
           <div className="grid gap-3 md:grid-cols-4">
             <StatusCell label="Estado alumno" status={form.status} />
             <StatusCell
@@ -1460,7 +1457,6 @@ function StudentFormModal({
             <label>
               <span className="text-sm font-semibold text-[#0A2540]">Edad</span>
               <input
-                required
                 type="number"
                 min="3"
                 value={form.age}
@@ -1473,7 +1469,6 @@ function StudentFormModal({
                 Fecha de nacimiento
               </span>
               <input
-                required
                 type="date"
                 value={form.birthDate}
                 onChange={(event) => onUpdate("birthDate", event.target.value)}
@@ -1485,7 +1480,6 @@ function StudentFormModal({
                 DNI / NIE
               </span>
               <input
-                required
                 type="text"
                 value={form.dniNie}
                 onChange={(event) => onUpdate("dniNie", event.target.value)}
@@ -1497,7 +1491,6 @@ function StudentFormModal({
                 Código postal
               </span>
               <input
-                required
                 type="text"
                 inputMode="numeric"
                 value={form.postalCode}
@@ -1510,7 +1503,6 @@ function StudentFormModal({
                 Dirección
               </span>
               <input
-                required
                 type="text"
                 value={form.address}
                 onChange={(event) => onUpdate("address", event.target.value)}
@@ -1530,7 +1522,6 @@ function StudentFormModal({
                   : "Persona de contacto"}
               </span>
               <input
-                required={isMinor}
                 type="text"
                 value={form.guardian}
                 onChange={(event) => onUpdate("guardian", event.target.value)}
@@ -1542,7 +1533,6 @@ function StudentFormModal({
                 Teléfono principal
               </span>
               <input
-                required
                 type="tel"
                 value={form.phone}
                 onChange={(event) => onUpdate("phone", event.target.value)}
@@ -1563,7 +1553,6 @@ function StudentFormModal({
             <label>
               <span className="text-sm font-semibold text-[#0A2540]">Email</span>
               <input
-                required
                 type="email"
                 value={form.email}
                 onChange={(event) => onUpdate("email", event.target.value)}
@@ -1579,7 +1568,6 @@ function StudentFormModal({
             <label>
               <span className="text-sm font-semibold text-[#0A2540]">Grupo</span>
               <select
-                required
                 value={form.course}
                 onChange={(event) => {
                   const selectedCourse = courseOptions.find(
@@ -1651,7 +1639,6 @@ function StudentFormModal({
                 Nombre completo de quien acepta
               </span>
               <input
-                required
                 type="text"
                 value={form.acceptanceName}
                 onChange={(event) =>
@@ -1666,7 +1653,6 @@ function StudentFormModal({
                   Relación con el alumno
                 </span>
                 <input
-                  required
                   type="text"
                   value={form.acceptanceRelation}
                   onChange={(event) =>
@@ -1766,7 +1752,6 @@ function StudentFormModal({
 
             <label className="sm:col-span-2 flex gap-3 rounded-[16px] border border-[#C8102E]/18 bg-[#FFF7F8] p-4 text-sm leading-6 text-[#4F5F70]">
               <input
-                required
                 type="checkbox"
                 checked={form.presencialConfirmado}
                 onChange={(event) =>
@@ -1829,7 +1814,6 @@ function StudentFormModal({
                 Fecha de alta
               </span>
               <input
-                required
                 type="date"
                 value={form.enrollmentDate}
                 onChange={(event) =>

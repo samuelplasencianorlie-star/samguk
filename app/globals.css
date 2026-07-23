@@ -455,31 +455,6 @@ a {
   }
 }
 
-.course-card {
-  box-shadow: 0 24px 72px rgba(10, 37, 64, 0.055);
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
-}
-
-.course-card::after {
-  position: absolute;
-  right: -4rem;
-  bottom: -5rem;
-  width: 12rem;
-  height: 12rem;
-  border: 1px solid rgba(10, 37, 64, 0.08);
-  border-radius: 999px;
-  content: "";
-}
-
-.course-card:hover {
-  border-color: #b8c4d0;
-  box-shadow: 0 30px 88px rgba(10, 37, 64, 0.09);
-  transform: translateY(-3px);
-}
-
 .schedule-card::after {
   position: absolute;
   right: -5rem;
@@ -494,10 +469,6 @@ a {
 
 .schedule-item {
   backdrop-filter: blur(12px);
-}
-
-.cta-panel {
-  box-shadow: 0 30px 90px rgba(10, 37, 64, 0.16);
 }
 
 .teacher-panel,

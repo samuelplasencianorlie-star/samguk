@@ -162,7 +162,6 @@ export default function Home() {
     ...item,
     label: home.quick[index] || item.label
   }));
-  const localizedGroups = home.training.cards;
   const localizedScheduleBlocks = publicScheduleBlocks.map((block) => ({
     ...block,
     items: block.items.map((item) => {
@@ -431,49 +430,6 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-12 grid gap-4 lg:grid-cols-3">
-              {localizedGroups.map((group, index) => (
-                <Reveal key={group.title} delay={index * 60}>
-                  <article className="course-card group relative flex h-full min-h-[19rem] flex-col justify-between overflow-hidden border border-[#D8E0E6] bg-white p-6 sm:p-7">
-                    <div>
-                      <div className="flex items-start justify-between gap-5">
-                        <span className="grid h-11 w-11 place-items-center border border-[#D8E0E6] text-xs font-semibold tabular-nums text-[#C8102E] transition-colors group-hover:border-[#C8102E]/40">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                        <span
-                          className="h-px flex-1 translate-y-5 bg-[#D8E0E6]"
-                          aria-hidden="true"
-                        />
-                      </div>
-                      <h3 className="mt-10 text-2xl font-semibold leading-7 tracking-[-0.03em] text-[#0A2540]">
-                        {group.title}
-                      </h3>
-                      <div className="mt-7 space-y-3 text-sm leading-6 text-[#4F5F70]">
-                        {group.items.map((item) => (
-                          <p
-                            key={item}
-                            className="flex gap-3 border-t border-[#E4EAF0] pt-3"
-                          >
-                            <span
-                              className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C8102E]"
-                              aria-hidden="true"
-                            />
-                            {item}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                    <a
-                      href="#horarios"
-                      className="mt-8 inline-flex min-h-11 w-fit items-center gap-2 text-sm font-semibold text-[#174EA6] outline-none transition-colors hover:text-[#C8102E] focus-visible:ring-2 focus-visible:ring-[#174EA6]"
-                    >
-                      {home.training.seeSchedule}
-                      <ArrowRight size={15} aria-hidden="true" />
-                    </a>
-                  </article>
-                </Reveal>
-              ))}
-            </div>
           </div>
         </section>
 
@@ -550,55 +506,6 @@ export default function Home() {
                 </Reveal>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section
-          id="inscripcion-info"
-          className="scroll-mt-24 bg-white py-14 sm:py-16 lg:py-20"
-        >
-          <div className="mx-auto max-w-[1440px] px-5 lg:px-8">
-            <Reveal>
-              <div className="cta-panel relative isolate overflow-hidden border border-[#D8E0E6] bg-[#0A2540] px-6 py-8 text-white sm:px-8 sm:py-10 lg:px-10">
-                <div
-                  className="absolute right-[-5rem] top-[-4rem] h-72 w-72 rounded-full border border-white/[0.08]"
-                  aria-hidden="true"
-                />
-                <div
-                  className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-[#C8102E] via-white/20 to-transparent"
-                  aria-hidden="true"
-                />
-                <div className="relative flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
-                  <div className="max-w-3xl">
-                    <p className="section-eyebrow text-[#E45D6E]">
-                      {home.enrollment.eyebrow}
-                    </p>
-                    <h2 className="mt-4 text-[clamp(2.25rem,4vw,4.6rem)] font-semibold leading-[0.94] tracking-[-0.055em]">
-                      {home.enrollment.title}
-                    </h2>
-                    <p className="mt-6 max-w-lg text-sm leading-6 text-white/[0.7]">
-                      {home.enrollment.intro}
-                    </p>
-                  </div>
-
-                  <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:justify-end">
-                    <Link
-                      href="/inscripcion"
-                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] bg-[#C8102E] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#A50D25] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A2540]"
-                    >
-                      {home.enrollment.primary}
-                      <ArrowRight size={17} aria-hidden="true" />
-                    </Link>
-                    <a
-                      href="#horarios"
-                      className="inline-flex min-h-12 items-center justify-center rounded-[6px] border border-white/[0.18] bg-white/[0.05] px-6 text-sm font-semibold text-white transition-colors hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                    >
-                      {home.enrollment.secondary}
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
           </div>
         </section>
 
