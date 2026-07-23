@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { StatusBadge } from "@/components/admin/status-badge";
 import type { RegistrationRequest, RequestStatus } from "@/lib/admin-types";
+import { formatAge } from "@/lib/age";
 
 const statusOptions: Array<RequestStatus | "Todas"> = [
   "Todas",
@@ -62,6 +63,8 @@ export function RegistrationRequestsPanel({
     useState<(typeof statusOptions)[number]>("Todas");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(initialRequests[0]?.id ?? "");
+  const [savingId, setSavingId] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const filteredRequests = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -94,27 +97,67 @@ export function RegistrationRequestsPanel({
     filteredRequests[0] ??
     requests[0];
 
-  function updateStatus(id: string, status: RequestStatus) {
+  async function updateStatus(id: string, status: RequestStatus) {
+    if (savingId) {
+      return false;
+    }
+
+    setSavingId(id);
+    setActionError("");
+
+    const response = await fetch("/api/admin/registration-requests", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status })
+    }).catch(() => null);
+    const body = (await response?.json().catch(() => null)) as {
+      message?: string;
+      status?: RequestStatus;
+    } | null;
+
+    if (!response?.ok || !body?.status) {
+      setActionError(
+        body?.message || "No se ha podido guardar el cambio. Inténtalo de nuevo."
+      );
+      setSavingId("");
+      return false;
+    }
+
     setRequests((currentRequests) =>
       currentRequests.map((request) =>
-        request.id === id ? { ...request, status } : request
+        request.id === id ? { ...request, status: body.status! } : request
       )
     );
     setSelectedId(id);
+    setSavingId("");
+    return true;
   }
 
-  function convertToStudent(request: RegistrationRequest) {
+  async function convertToStudent(request: RegistrationRequest) {
+    const saved = await updateStatus(request.id, "Aceptada");
+
+    if (!saved) {
+      return;
+    }
+
     window.sessionStorage.setItem(
       "samguk-registration-to-student",
       JSON.stringify(request)
     );
-    updateStatus(request.id, "Aceptada");
     router.push("/admin/alumnos#nuevo-alumno");
   }
 
   return (
     <div className="grid gap-5 xl:grid-cols-[1.12fr_0.88fr]">
       <section className="rounded-[14px] border border-[#D8E0E6] bg-white p-5 shadow-[0_24px_72px_rgba(10,37,64,0.06)] sm:p-6">
+        {actionError ? (
+          <p
+            className="mb-4 rounded-[10px] border border-[#C8102E]/20 bg-[#FFF0F3] px-3 py-2 text-sm font-semibold text-[#A50D25]"
+            role="alert"
+          >
+            {actionError}
+          </p>
+        ) : null}
         <div className="flex flex-col gap-4 border-b border-[#E1E7ED] pb-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#C8102E]">
@@ -195,7 +238,9 @@ export function RegistrationRequestsPanel({
                       {request.submittedAt}
                     </p>
                   </div>
-                  <p className="text-sm text-[#4F5F70]">{request.age} años</p>
+                  <p className="text-sm text-[#4F5F70]">
+                    {formatAge(request.age, request.birthDate)}
+                  </p>
                   <p className="text-sm leading-6 text-[#4F5F70]">
                     {request.dniNie}
                   </p>
@@ -222,7 +267,8 @@ export function RegistrationRequestsPanel({
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      onClick={() => updateStatus(request.id, "Aceptada")}
+                      onClick={() => void updateStatus(request.id, "Aceptada")}
+                      disabled={savingId === request.id}
                       className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-[8px] border border-[#D8E0E6] px-3 text-sm font-semibold text-[#0A2540] transition-colors hover:border-[#1E8E3E] hover:text-[#1E6E35]"
                     >
                       <Check size={15} strokeWidth={1.9} aria-hidden="true" />
@@ -230,7 +276,8 @@ export function RegistrationRequestsPanel({
                     </button>
                     <button
                       type="button"
-                      onClick={() => updateStatus(request.id, "Rechazada")}
+                      onClick={() => void updateStatus(request.id, "Rechazada")}
+                      disabled={savingId === request.id}
                       className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-[8px] border border-[#D8E0E6] px-3 text-sm font-semibold text-[#0A2540] transition-colors hover:border-[#C8102E] hover:text-[#C8102E]"
                     >
                       <X size={15} strokeWidth={1.9} aria-hidden="true" />
@@ -238,14 +285,16 @@ export function RegistrationRequestsPanel({
                     </button>
                     <button
                       type="button"
-                      onClick={() => updateStatus(request.id, "Revisada")}
+                      onClick={() => void updateStatus(request.id, "Revisada")}
+                      disabled={savingId === request.id}
                       className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-[#D8E0E6] px-3 text-sm font-semibold text-[#0A2540] transition-colors hover:border-[#E6A500] hover:text-[#805A00]"
                     >
                       Pedir datos pendientes
                     </button>
                     <button
                       type="button"
-                      onClick={() => convertToStudent(request)}
+                      onClick={() => void convertToStudent(request)}
+                      disabled={savingId === request.id}
                       className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-[8px] bg-[#0A2540] px-3 text-sm font-semibold text-white transition-colors hover:bg-[#174EA6]"
                     >
                       <UserPlus size={15} strokeWidth={1.9} aria-hidden="true" />
@@ -280,17 +329,26 @@ export function RegistrationRequestsPanel({
 
             <dl className="mt-5 grid gap-4 text-sm">
               {[
-                ["Edad", `${selectedRequest.age} años`],
-                ["Fecha de nacimiento", selectedRequest.birthDate],
-                ["DNI/NIE", selectedRequest.dniNie],
-                ["Dirección", selectedRequest.address],
-                ["Código postal", selectedRequest.postalCode],
-                ["Tutor", selectedRequest.guardian],
+                [
+                  "Edad",
+                  formatAge(selectedRequest.age, selectedRequest.birthDate)
+                ],
+                [
+                  "Fecha de nacimiento",
+                  selectedRequest.birthDate || "No indicada"
+                ],
+                ["DNI/NIE", selectedRequest.dniNie || "No indicado"],
+                ["Dirección", selectedRequest.address || "No indicada"],
+                [
+                  "Código postal",
+                  selectedRequest.postalCode || "No indicado"
+                ],
+                ["Tutor", selectedRequest.guardian || "No indicado"],
                 ["Teléfono", selectedRequest.phone],
                 ["Teléfono 2", selectedRequest.phone2 || "No indicado"],
-                ["Email", selectedRequest.email],
+                ["Email", selectedRequest.email || "No indicado"],
                 ["Fecha de solicitud", selectedRequest.submittedAt],
-                ["Mensaje", selectedRequest.message]
+                ["Mensaje", selectedRequest.message || "Sin mensaje"]
               ].map(([label, value]) => (
                 <div key={label} className="border-b border-[#EEF2F5] pb-4">
                   <dt className="font-semibold text-[#0A2540]">{label}</dt>
@@ -360,35 +418,48 @@ export function RegistrationRequestsPanel({
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
-                onClick={() => updateStatus(selectedRequest.id, "Revisada")}
+                onClick={() =>
+                  void updateStatus(selectedRequest.id, "Revisada")
+                }
+                disabled={savingId === selectedRequest.id}
                 className="min-h-11 rounded-[8px] border border-[#D8E0E6] px-3 text-sm font-semibold text-[#0A2540] transition-colors hover:border-[#174EA6] hover:text-[#174EA6]"
               >
                 Revisada
               </button>
               <button
                 type="button"
-                onClick={() => updateStatus(selectedRequest.id, "Revisada")}
+                onClick={() =>
+                  void updateStatus(selectedRequest.id, "Revisada")
+                }
+                disabled={savingId === selectedRequest.id}
                 className="min-h-11 rounded-[8px] border border-[#D8E0E6] px-3 text-sm font-semibold text-[#0A2540] transition-colors hover:border-[#E6A500] hover:text-[#805A00]"
               >
                 Pedir datos pendientes
               </button>
               <button
                 type="button"
-                onClick={() => updateStatus(selectedRequest.id, "Aceptada")}
+                onClick={() =>
+                  void updateStatus(selectedRequest.id, "Aceptada")
+                }
+                disabled={savingId === selectedRequest.id}
                 className="min-h-11 rounded-[8px] bg-[#0A2540] px-3 text-sm font-semibold text-white transition-colors hover:bg-[#174EA6]"
               >
                 Aceptar
               </button>
               <button
                 type="button"
-                onClick={() => updateStatus(selectedRequest.id, "Rechazada")}
+                onClick={() =>
+                  void updateStatus(selectedRequest.id, "Rechazada")
+                }
+                disabled={savingId === selectedRequest.id}
                 className="min-h-11 rounded-[8px] bg-[#C8102E] px-3 text-sm font-semibold text-white transition-colors hover:bg-[#A50D25]"
               >
                 Rechazar
               </button>
               <button
                 type="button"
-                onClick={() => convertToStudent(selectedRequest)}
+                onClick={() => void convertToStudent(selectedRequest)}
+                disabled={savingId === selectedRequest.id}
                 className="min-h-11 rounded-[8px] bg-[#0A2540] px-3 text-sm font-semibold text-white transition-colors hover:bg-[#174EA6] sm:col-span-2"
               >
                 Convertir en alumno

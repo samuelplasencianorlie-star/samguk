@@ -28,6 +28,7 @@ import {
   formatPaymentMonth,
   getPaymentMonthKey
 } from "@/lib/payment-utils";
+import { calculateAge, formatAge } from "@/lib/age";
 import { hasEssentialStudentData } from "@/lib/student-completeness";
 
 type StudentsPanelProps = {
@@ -37,7 +38,6 @@ type StudentsPanelProps = {
 
 type StudentFormState = {
   fullName: string;
-  age: string;
   birthDate: string;
   guardian: string;
   address: string;
@@ -68,7 +68,6 @@ type PaymentFilter = "Todos" | "Pagados" | "Pendientes";
 
 const emptyStudentForm: StudentFormState = {
   fullName: "",
-  age: "",
   birthDate: "",
   guardian: "",
   address: "",
@@ -312,7 +311,6 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
       if (storedRequest) {
         const request = JSON.parse(storedRequest) as {
           fullName?: string;
-          age?: number;
           birthDate?: string;
           guardian?: string;
           address?: string;
@@ -334,7 +332,6 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
         setForm({
           ...emptyStudentForm,
           fullName: request.fullName ?? "",
-          age: request.age ? String(request.age) : "",
           birthDate: request.birthDate ?? "",
           guardian: request.guardian ?? "",
           address: request.address ?? "",
@@ -360,7 +357,10 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
           notes: request.message ?? "",
           acceptanceName: request.guardian || request.fullName || "",
           acceptanceRelation:
-            request.age && request.age < 18 ? "Padre, madre o tutor legal" : "",
+            request.birthDate &&
+            (calculateAge(request.birthDate) ?? Number.POSITIVE_INFINITY) < 18
+              ? "Padre, madre o tutor legal"
+              : "",
           presencialConfirmado: false
         });
         window.sessionStorage.removeItem("samguk-registration-to-student");
@@ -504,7 +504,6 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
     setSelectedStudent(null);
     setForm({
       fullName: student.fullName,
-      age: student.age > 0 ? String(student.age) : "",
       birthDate: student.birthDate,
       guardian: student.guardian,
       address: student.address,
@@ -1167,7 +1166,7 @@ function StudentDetail({
                 title="Alumno"
                 items={[
                   ["Nombre", student.fullName],
-                  ["Edad", `${student.age}`],
+                  ["Edad", formatAge(student.age, student.birthDate)],
                   ["Fecha de nacimiento", formatDate(student.birthDate)],
                   ["DNI / NIE", student.dniNie || "Sin DNI/NIE"],
                   ["Dirección", student.address || "Sin dirección"],
@@ -1365,8 +1364,8 @@ function StudentFormModal({
   isSaving: boolean;
   onDeactivate: () => void;
 }) {
-  const age = Number(form.age);
-  const isMinor = Number.isFinite(age) && age < 18;
+  const age = calculateAge(form.birthDate);
+  const isMinor = age !== null && age < 18;
   const hasHistoricConsent = Boolean(form.fechaAceptacionLegal);
 
   return (
@@ -1455,16 +1454,6 @@ function StudentFormModal({
               />
             </label>
             <label>
-              <span className="text-sm font-semibold text-[#0A2540]">Edad</span>
-              <input
-                type="number"
-                min="3"
-                value={form.age}
-                onChange={(event) => onUpdate("age", event.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label>
               <span className="text-sm font-semibold text-[#0A2540]">
                 Fecha de nacimiento
               </span>
@@ -1475,6 +1464,16 @@ function StudentFormModal({
                 className={inputClass}
               />
             </label>
+            <div className="rounded-[10px] border border-[#E1E7ED] bg-[#F8FAFB] px-3 py-3">
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#7B8794]">
+                Edad calculada
+              </span>
+              <p className="mt-1 text-sm font-semibold text-[#0A2540]">
+                {age === null
+                  ? "Añade la fecha de nacimiento"
+                  : formatAge(age, form.birthDate)}
+              </p>
+            </div>
             <label>
               <span className="text-sm font-semibold text-[#0A2540]">
                 DNI / NIE

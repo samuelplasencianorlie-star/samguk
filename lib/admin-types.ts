@@ -61,7 +61,6 @@ export type RegistrationRequest = {
 
 export type RegistrationRequestDraft = {
   fullName: string;
-  age: string;
   birthDate: string;
   guardian: string;
   address: string;

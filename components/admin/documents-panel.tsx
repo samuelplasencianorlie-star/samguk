@@ -18,10 +18,6 @@ const filterOptions = [
 
 type FilterOption = (typeof filterOptions)[number];
 
-function documentStatus(value: boolean) {
-  return value ? "Completo" : "Pendiente";
-}
-
 function conditionsStatus(value: boolean) {
   return value ? "Aceptadas" : "Pendientes";
 }

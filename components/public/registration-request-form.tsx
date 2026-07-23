@@ -9,7 +9,6 @@ import { publicTranslations } from "@/lib/public-translations";
 
 const initialRequest: RegistrationRequestDraft = {
   fullName: "",
-  age: "",
   birthDate: "",
   guardian: "",
   address: "",
@@ -24,7 +23,6 @@ const initialRequest: RegistrationRequestDraft = {
 type FieldErrors = Partial<Record<keyof RegistrationRequestDraft, string>>;
 
 const labelClass = "text-sm font-semibold text-[#0A2540]";
-const optionalClass = "ml-1 text-xs font-normal text-[#7B8794]";
 const fieldClass =
   "mt-1.5 w-full rounded-[6px] border border-[#CAD4DE] bg-white px-3.5 py-2.5 text-sm text-[#111318] outline-none transition-colors placeholder:text-[#8A96A3] focus:border-[#174EA6] focus:ring-2 focus:ring-[#174EA6]/20";
 const errorClass = "mt-1.5 text-xs font-semibold leading-5 text-[#A50D25]";
@@ -48,7 +46,6 @@ function FieldError({ error }: { error?: string }) {
 export function RegistrationRequestForm() {
   const language = usePublicLanguage();
   const formCopy = publicTranslations[language].registration.form;
-  const optionalLabel = language === "en" ? "(optional)" : "(opcional)";
   const [request, setRequest] =
     useState<RegistrationRequestDraft>(initialRequest);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -134,8 +131,6 @@ export function RegistrationRequestForm() {
     }
   }
 
-  const optional = <span className={optionalClass}>{optionalLabel}</span>;
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -159,7 +154,7 @@ export function RegistrationRequestForm() {
           <legend className="mb-1 text-sm font-semibold text-[#0A2540]">
             {formCopy.studentLegend}
           </legend>
-          <label className="sm:col-span-4">
+          <label className="sm:col-span-6">
             <span className={labelClass}>{formCopy.fields.fullName}</span>
             <input
               required
@@ -172,24 +167,8 @@ export function RegistrationRequestForm() {
             />
             <FieldError error={errors.fullName} />
           </label>
-          <label className="sm:col-span-2">
-            <span className={labelClass}>
-              {formCopy.fields.age} {optional}
-            </span>
-            <input
-              name="age"
-              type="number"
-              min="0"
-              inputMode="numeric"
-              value={request.age}
-              onChange={(event) => updateField("age", event.target.value)}
-              className={fieldClass}
-            />
-          </label>
           <label className="sm:col-span-3">
-            <span className={labelClass}>
-              {formCopy.fields.birthDate} {optional}
-            </span>
+            <span className={labelClass}>{formCopy.fields.birthDate}</span>
             <input
               name="birthDate"
               type="date"
@@ -199,9 +178,7 @@ export function RegistrationRequestForm() {
             />
           </label>
           <label className="sm:col-span-3">
-            <span className={labelClass}>
-              {formCopy.fields.dniNie} {optional}
-            </span>
+            <span className={labelClass}>{formCopy.fields.dniNie}</span>
             <input
               name="dniNie"
               type="text"
@@ -211,9 +188,7 @@ export function RegistrationRequestForm() {
             />
           </label>
           <label className="sm:col-span-4">
-            <span className={labelClass}>
-              {formCopy.fields.address} {optional}
-            </span>
+            <span className={labelClass}>{formCopy.fields.address}</span>
             <input
               name="address"
               type="text"
@@ -224,9 +199,7 @@ export function RegistrationRequestForm() {
             />
           </label>
           <label className="sm:col-span-2">
-            <span className={labelClass}>
-              {formCopy.fields.postalCode} {optional}
-            </span>
+            <span className={labelClass}>{formCopy.fields.postalCode}</span>
             <input
               name="postalCode"
               type="text"
@@ -244,9 +217,7 @@ export function RegistrationRequestForm() {
             {formCopy.contactLegend}
           </legend>
           <label className="sm:col-span-6">
-            <span className={labelClass}>
-              {formCopy.fields.guardian} {optional}
-            </span>
+            <span className={labelClass}>{formCopy.fields.guardian}</span>
             <input
               name="guardian"
               type="text"
@@ -270,9 +241,7 @@ export function RegistrationRequestForm() {
             <FieldError error={errors.phone} />
           </label>
           <label className="sm:col-span-3">
-            <span className={labelClass}>
-              {formCopy.fields.phone2} {optional}
-            </span>
+            <span className={labelClass}>{formCopy.fields.phone2}</span>
             <input
               name="phone2"
               type="tel"
@@ -282,9 +251,7 @@ export function RegistrationRequestForm() {
             />
           </label>
           <label className="sm:col-span-6">
-            <span className={labelClass}>
-              {formCopy.fields.email} {optional}
-            </span>
+            <span className={labelClass}>{formCopy.fields.email}</span>
             <input
               name="email"
               type="email"
@@ -296,9 +263,7 @@ export function RegistrationRequestForm() {
             <FieldError error={errors.email} />
           </label>
           <label className="sm:col-span-6">
-            <span className={labelClass}>
-              {formCopy.fields.message} {optional}
-            </span>
+            <span className={labelClass}>{formCopy.fields.message}</span>
             <textarea
               name="message"
               rows={3}

@@ -123,7 +123,6 @@ export const publicTranslations = {
         contactLegend: "Responsable legal y contacto",
         fields: {
           fullName: "Nombre y apellidos",
-          age: "Edad",
           birthDate: "Fecha de nacimiento",
           dniNie: "DNI / NIE",
           address: "Dirección",
@@ -136,7 +135,6 @@ export const publicTranslations = {
         },
         errors: {
           fullName: "Introduce el nombre y apellidos del alumno.",
-          age: "Introduce una edad válida.",
           birthDate: "Introduce una fecha de nacimiento válida.",
           guardian: "Introduce el nombre de la persona responsable.",
           address: "Introduce una dirección válida.",
@@ -314,7 +312,6 @@ export const publicTranslations = {
         contactLegend: "Legal guardian and contact",
         fields: {
           fullName: "Full name",
-          age: "Age",
           birthDate: "Date of birth",
           dniNie: "ID / NIE",
           address: "Address",
@@ -327,7 +324,6 @@ export const publicTranslations = {
         },
         errors: {
           fullName: "Enter the student's full name.",
-          age: "Enter a valid age.",
           birthDate: "Enter a valid date of birth.",
           guardian: "Enter the responsible person's name.",
           address: "Enter a valid address.",

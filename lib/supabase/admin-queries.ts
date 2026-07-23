@@ -8,6 +8,7 @@ import type {
   Student,
   StudentPayment
 } from "@/lib/admin-types";
+import { calculateAge } from "@/lib/age";
 import { getPaymentMonthKey } from "@/lib/payment-utils";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -114,7 +115,7 @@ function studentRowToStudent(
   return {
     id: student.id,
     fullName: student.full_name,
-    age: student.age ?? 0,
+    age: calculateAge(student.birth_date ?? "") ?? 0,
     birthDate: student.birth_date ?? "",
     guardian: student.guardian ?? "",
     address: student.address ?? "",
@@ -149,7 +150,7 @@ function requestRowToRegistrationRequest(
   return {
     id: request.id,
     fullName: request.full_name,
-    age: request.age ?? 0,
+    age: calculateAge(request.birth_date ?? "") ?? 0,
     birthDate: request.birth_date ?? "",
     guardian: request.guardian ?? "",
     address: request.address ?? "",

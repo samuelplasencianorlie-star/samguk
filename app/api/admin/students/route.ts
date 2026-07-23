@@ -3,6 +3,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { checkAdminAccess } from "@/lib/supabase/admin-auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Student, StudentPayment, StudentStatus } from "@/lib/admin-types";
+import { calculateAge } from "@/lib/age";
 import { LEGAL_CONSENT_VERSION } from "@/lib/legal-consent";
 import { getPaymentMonthKey } from "@/lib/payment-utils";
 
@@ -11,7 +12,6 @@ export const runtime = "nodejs";
 type StudentPayload = {
   id?: unknown;
   fullName?: unknown;
-  age?: unknown;
   birthDate?: unknown;
   guardian?: unknown;
   address?: unknown;
@@ -106,15 +106,6 @@ function nullableText(value: unknown) {
   return normalized || null;
 }
 
-function optionalAge(value: unknown) {
-  if (value === "" || value === null || value === undefined) {
-    return null;
-  }
-
-  const age = Number(value);
-  return Number.isFinite(age) && age >= 0 && age <= 120 ? age : null;
-}
-
 function bool(value: unknown) {
   return value === true;
 }
@@ -135,6 +126,7 @@ function paymentRowToPayment(payment: StudentPaymentRow): StudentPayment {
 
 function rowToStudent(student: StudentRow, payments: StudentPayment[] = []): Student {
   const currentPaymentMonth = getPaymentMonthKey();
+  const birthDate = student.birth_date ?? "";
   const currentPayment = payments.find(
     (payment) =>
       payment.month === currentPaymentMonth && payment.status === "Pagado"
@@ -143,8 +135,8 @@ function rowToStudent(student: StudentRow, payments: StudentPayment[] = []): Stu
   return {
     id: student.id,
     fullName: student.full_name,
-    age: student.age ?? 0,
-    birthDate: student.birth_date ?? "",
+    age: calculateAge(birthDate) ?? 0,
+    birthDate,
     guardian: student.guardian ?? "",
     address: student.address ?? "",
     postalCode: student.postal_code ?? "",
@@ -251,7 +243,8 @@ async function recordLegalAcceptance(
 }
 
 function validatePayload(payload: StudentPayload) {
-  const age = optionalAge(payload.age);
+  const birthDate = text(payload.birthDate);
+  const age = birthDate ? calculateAge(birthDate) : null;
   const status = allowedStatuses.includes(payload.status as StudentStatus)
     ? (payload.status as StudentStatus)
     : "Pendiente";
@@ -272,12 +265,10 @@ function validatePayload(payload: StudentPayload) {
   }
 
   if (
-    payload.age !== "" &&
-    payload.age !== null &&
-    payload.age !== undefined &&
+    birthDate &&
     age === null
   ) {
-    errors.push("La edad indicada no es válida.");
+    errors.push("La fecha de nacimiento indicada no es válida.");
   }
 
   return {

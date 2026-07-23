@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { calculateAge } from "@/lib/age";
 import { getSupabaseConfigOrThrow } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
 
 type RegistrationPayload = {
   fullName?: unknown;
-  age?: unknown;
   birthDate?: unknown;
   guardian?: unknown;
   address?: unknown;
@@ -27,15 +27,6 @@ function nullableText(value: unknown) {
   return text(value) || null;
 }
 
-function optionalAge(value: unknown) {
-  if (value === "" || value === null || value === undefined) {
-    return null;
-  }
-
-  const age = Number(value);
-  return Number.isFinite(age) && age >= 0 && age <= 120 ? age : null;
-}
-
 function isValidPhone(value: string) {
   return /^\+?[0-9\s]{6,16}$/.test(value);
 }
@@ -49,7 +40,8 @@ export async function POST(request: NextRequest) {
   const fullName = text(payload.fullName);
   const phone = text(payload.phone);
   const email = text(payload.email).toLowerCase();
-  const age = optionalAge(payload.age);
+  const birthDate = text(payload.birthDate);
+  const age = birthDate ? calculateAge(birthDate) : null;
 
   if (fullName.length < 2) {
     return NextResponse.json(
@@ -80,13 +72,11 @@ export async function POST(request: NextRequest) {
   }
 
   if (
-    payload.age !== "" &&
-    payload.age !== null &&
-    payload.age !== undefined &&
+    birthDate &&
     age === null
   ) {
     return NextResponse.json(
-      { message: "La edad indicada no es válida." },
+      { message: "La fecha de nacimiento indicada no es válida." },
       { status: 400 }
     );
   }
@@ -99,7 +89,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase.from("registration_requests").insert({
       full_name: fullName,
       age,
-      birth_date: nullableText(payload.birthDate),
+      birth_date: birthDate || null,
       guardian: nullableText(payload.guardian),
       address: nullableText(payload.address),
       postal_code: nullableText(payload.postalCode),
