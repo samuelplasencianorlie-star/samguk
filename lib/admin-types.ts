@@ -2,6 +2,8 @@ export type RequestStatus = "Pendiente" | "Revisada" | "Aceptada" | "Rechazada";
 
 export type StudentStatus = "Activo" | "En prueba" | "Pendiente" | "Baja";
 
+export type MonthlyPaymentStatus = "Pagado" | "Pendiente";
+
 export type DocumentStatus =
   | "Completo"
   | "Aceptada"
@@ -96,6 +98,17 @@ export type Student = {
   textoLegalVersion: string;
   documentationComplete: boolean;
   notes: string;
+  currentPaymentMonth: string;
+  paymentStatus: MonthlyPaymentStatus;
+  paymentHistory: StudentPayment[];
+};
+
+export type StudentPayment = {
+  id: string;
+  month: string;
+  status: MonthlyPaymentStatus;
+  paidAt: string;
+  recordedBy: string;
 };
 
 export type ClubConfigItem = {

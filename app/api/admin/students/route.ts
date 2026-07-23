@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { checkAdminAccess } from "@/lib/supabase/admin-auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Student, StudentStatus } from "@/lib/admin-types";
+import type { Student, StudentPayment, StudentStatus } from "@/lib/admin-types";
 import { LEGAL_CONSENT_VERSION } from "@/lib/legal-consent";
+import { getPaymentMonthKey } from "@/lib/payment-utils";
 
 export const runtime = "nodejs";
 
@@ -64,6 +65,14 @@ type StudentRow = {
   tutor_confirmado: boolean | null;
 };
 
+type StudentPaymentRow = {
+  id: string;
+  paid_at: string | null;
+  payment_month: string;
+  recorded_by: string | null;
+  status: string | null;
+};
+
 type LegalAcceptanceRecord = {
   acceptedAt: string;
   acceptedBy: string;
@@ -100,7 +109,23 @@ function imageConsent(value: unknown) {
   return typeof value === "boolean" ? value : null;
 }
 
-function rowToStudent(student: StudentRow): Student {
+function paymentRowToPayment(payment: StudentPaymentRow): StudentPayment {
+  return {
+    id: payment.id,
+    month: payment.payment_month.slice(0, 7),
+    paidAt: payment.paid_at ?? "",
+    recordedBy: payment.recorded_by ?? "",
+    status: payment.status === "Pagado" ? "Pagado" : "Pendiente"
+  };
+}
+
+function rowToStudent(student: StudentRow, payments: StudentPayment[] = []): Student {
+  const currentPaymentMonth = getPaymentMonthKey();
+  const currentPayment = payments.find(
+    (payment) =>
+      payment.month === currentPaymentMonth && payment.status === "Pagado"
+  );
+
   return {
     id: student.id,
     fullName: student.full_name,
@@ -126,7 +151,10 @@ function rowToStudent(student: StudentRow): Student {
     fechaAceptacionLegal: student.fecha_aceptacion_legal ?? "",
     textoLegalVersion: student.texto_legal_version ?? "",
     documentationComplete: Boolean(student.documentation_complete),
-    notes: student.notes ?? ""
+    notes: student.notes ?? "",
+    currentPaymentMonth,
+    paymentStatus: currentPayment ? "Pagado" : "Pendiente",
+    paymentHistory: payments
   };
 }
 
@@ -345,6 +373,21 @@ function dbErrorResponse(error: PostgrestError | null) {
   );
 }
 
+async function getStudentPayments(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  studentId: string
+) {
+  const { data } = await supabase
+    .from("student_monthly_payments")
+    .select("id,payment_month,status,paid_at,recorded_by")
+    .eq("student_id", studentId)
+    .order("payment_month", { ascending: false });
+
+  return ((data as unknown as StudentPaymentRow[] | null) ?? []).map(
+    paymentRowToPayment
+  );
+}
+
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
 
@@ -426,7 +469,9 @@ export async function POST(request: NextRequest) {
     version
   });
 
-  return NextResponse.json({ student: rowToStudent(savedStudent) });
+  const payments = await getStudentPayments(auth.supabase, savedStudent.id);
+
+  return NextResponse.json({ student: rowToStudent(savedStudent, payments) });
 }
 
 export async function PATCH(request: NextRequest) {
@@ -468,8 +513,11 @@ export async function PATCH(request: NextRequest) {
       return dbErrorResponse(error);
     }
 
+    const savedStudent = data as unknown as StudentRow;
+    const payments = await getStudentPayments(auth.supabase, savedStudent.id);
+
     return NextResponse.json({
-      student: rowToStudent(data as unknown as StudentRow)
+      student: rowToStudent(savedStudent, payments)
     });
   }
 
@@ -561,5 +609,7 @@ export async function PATCH(request: NextRequest) {
     });
   }
 
-  return NextResponse.json({ student: rowToStudent(savedStudent) });
+  const payments = await getStudentPayments(auth.supabase, savedStudent.id);
+
+  return NextResponse.json({ student: rowToStudent(savedStudent, payments) });
 }

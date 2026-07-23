@@ -5,8 +5,10 @@ import {
 import type {
   AdminCourse,
   RegistrationRequest,
-  Student
+  Student,
+  StudentPayment
 } from "@/lib/admin-types";
+import { getPaymentMonthKey } from "@/lib/payment-utils";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -46,6 +48,15 @@ type StudentRow = {
   tutor_confirmado: boolean | null;
 };
 
+type StudentPaymentRow = {
+  id: string;
+  paid_at: string | null;
+  payment_month: string;
+  recorded_by: string | null;
+  status: string | null;
+  student_id: string;
+};
+
 type RegistrationRequestRow = {
   address: string | null;
   age: number | null;
@@ -80,7 +91,26 @@ function groupRowToCourse(group: GroupRow): AdminCourse {
   };
 }
 
-function studentRowToStudent(student: StudentRow): Student {
+function paymentRowToPayment(payment: StudentPaymentRow): StudentPayment {
+  return {
+    id: payment.id,
+    month: payment.payment_month.slice(0, 7),
+    paidAt: payment.paid_at ?? "",
+    recordedBy: payment.recorded_by ?? "",
+    status: payment.status === "Pagado" ? "Pagado" : "Pendiente"
+  };
+}
+
+function studentRowToStudent(
+  student: StudentRow,
+  payments: StudentPayment[] = [],
+  currentPaymentMonth = getPaymentMonthKey()
+): Student {
+  const currentPayment = payments.find(
+    (payment) =>
+      payment.month === currentPaymentMonth && payment.status === "Pagado"
+  );
+
   return {
     id: student.id,
     fullName: student.full_name,
@@ -106,7 +136,10 @@ function studentRowToStudent(student: StudentRow): Student {
     fechaAceptacionLegal: student.fecha_aceptacion_legal ?? "",
     textoLegalVersion: student.texto_legal_version ?? "",
     documentationComplete: Boolean(student.documentation_complete),
-    notes: student.notes ?? ""
+    notes: student.notes ?? "",
+    currentPaymentMonth,
+    paymentStatus: currentPayment ? "Pagado" : "Pendiente",
+    paymentHistory: payments
   };
 }
 
@@ -199,7 +232,34 @@ export async function getAdminStudents(): Promise<Student[]> {
     return [];
   }
 
-  return (data as unknown as StudentRow[]).map(studentRowToStudent);
+  const studentRows = data as unknown as StudentRow[];
+  const studentIds = studentRows.map((student) => student.id);
+  const currentPaymentMonth = getPaymentMonthKey();
+  const paymentsByStudent = new Map<string, StudentPayment[]>();
+
+  if (studentIds.length) {
+    const { data: paymentData } = await supabase
+      .from("student_monthly_payments")
+      .select("id,student_id,payment_month,status,paid_at,recorded_by")
+      .in("student_id", studentIds)
+      .order("payment_month", { ascending: false });
+
+    (paymentData as unknown as StudentPaymentRow[] | null)?.forEach(
+      (payment) => {
+        const existing = paymentsByStudent.get(payment.student_id) ?? [];
+        existing.push(paymentRowToPayment(payment));
+        paymentsByStudent.set(payment.student_id, existing);
+      }
+    );
+  }
+
+  return studentRows.map((student) =>
+    studentRowToStudent(
+      student,
+      paymentsByStudent.get(student.id) ?? [],
+      currentPaymentMonth
+    )
+  );
 }
 
 export async function getRegistrationRequests(): Promise<

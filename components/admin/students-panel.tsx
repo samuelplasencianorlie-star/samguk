@@ -4,8 +4,8 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   ArrowLeft,
-  ChevronDown,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   Pencil,
   Search,
@@ -16,6 +16,7 @@ import { StatusBadge } from "@/components/admin/status-badge";
 import type {
   AdminCourse,
   DocumentStatus,
+  MonthlyPaymentStatus,
   Student,
   StudentStatus
 } from "@/lib/admin-types";
@@ -23,6 +24,10 @@ import {
   LEGAL_CONSENT_VERSION,
   legalConsentSections
 } from "@/lib/legal-consent";
+import {
+  formatPaymentMonth,
+  getPaymentMonthKey
+} from "@/lib/payment-utils";
 
 type StudentsPanelProps = {
   initialStudents: Student[];
@@ -58,6 +63,7 @@ type StudentFormState = {
 };
 
 type StudentTab = "Resumen" | "Progreso" | "Asistencia" | "Notas" | "Historial" | "Datos";
+type PaymentFilter = "Todos" | "Pagados" | "Pendientes";
 
 const emptyStudentForm: StudentFormState = {
   fullName: "",
@@ -157,6 +163,18 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function getRecentPaymentMonths(count = 6) {
+  const [currentYear, currentMonth] = getPaymentMonthKey().split("-").map(Number);
+
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(Date.UTC(currentYear, currentMonth - 1 - index, 1));
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+
+    return `${year}-${month}`;
+  });
+}
+
 function pluralizeStudents(count: number) {
   return count === 1 ? "1 alumno" : `${count} alumnos`;
 }
@@ -175,6 +193,36 @@ function StatusCell({
       </span>
       <StatusBadge status={status} />
     </div>
+  );
+}
+
+function PaymentBadge({
+  status,
+  size = "default"
+}: {
+  status: MonthlyPaymentStatus;
+  size?: "default" | "large";
+}) {
+  const isPaid = status === "Pagado";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border font-semibold uppercase tracking-[0.08em] ${
+        size === "large" ? "px-3.5 py-2 text-xs" : "px-2.5 py-1.5 text-[11px]"
+      } ${
+        isPaid
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+          : "border-red-200 bg-red-50 text-red-700"
+      }`}
+    >
+      <span
+        className={`rounded-full ${size === "large" ? "h-2.5 w-2.5" : "h-2 w-2"} ${
+          isPaid ? "bg-emerald-500" : "bg-red-500"
+        }`}
+        aria-hidden="true"
+      />
+      {isPaid ? "Pagado" : "Pendiente"}
+    </span>
   );
 }
 
@@ -200,6 +248,9 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
   const [formSuccess, setFormSuccess] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("Todos");
+  const [paymentFeedback, setPaymentFeedback] = useState("");
+  const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null);
 
   const courseOptions = useMemo(
     () =>
@@ -235,6 +286,17 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
   );
 
   const activeGroups = groupSummaries.filter((group) => group.total > 0).length;
+
+  const paymentSummary = useMemo(() => {
+    const paid = students.filter((student) => student.paymentStatus === "Pagado")
+      .length;
+
+    return {
+      paid,
+      pending: students.length - paid,
+      total: students.length
+    };
+  }, [students]);
 
   useEffect(() => {
     function openStudentFormFromHash() {
@@ -341,10 +403,16 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
 
         const matchesGroup =
           groupFilter === "Todos" || student.course === groupFilter;
-        return matchesQuery && matchesGroup;
+        const matchesPayment =
+          paymentFilter === "Todos" ||
+          (paymentFilter === "Pagados" && student.paymentStatus === "Pagado") ||
+          (paymentFilter === "Pendientes" &&
+            student.paymentStatus === "Pendiente");
+
+        return matchesQuery && matchesGroup && matchesPayment;
       })
       .sort((a, b) => a.fullName.localeCompare(b.fullName));
-  }, [groupFilter, query, students]);
+  }, [groupFilter, paymentFilter, query, students]);
 
   function updateForm<TField extends keyof StudentFormState>(
     field: TField,
@@ -486,6 +554,107 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
     setSelectedStudent(student);
   }
 
+  async function updateStudentPayment(
+    student: Student,
+    nextStatus: MonthlyPaymentStatus
+  ) {
+    const previousStudents = students;
+    const previousSelectedStudent = selectedStudent;
+    const currentPaymentMonth = getPaymentMonthKey();
+    const now = new Date().toISOString();
+    const nextPaymentHistory =
+      nextStatus === "Pagado"
+        ? [
+            {
+              id: `temporary-${student.id}-${currentPaymentMonth}`,
+              month: currentPaymentMonth,
+              paidAt: now,
+              recordedBy: "",
+              status: "Pagado" as MonthlyPaymentStatus
+            },
+            ...student.paymentHistory.filter(
+              (payment) => payment.month !== currentPaymentMonth
+            )
+          ]
+        : student.paymentHistory.filter(
+            (payment) => payment.month !== currentPaymentMonth
+          );
+    const optimisticStudent: Student = {
+      ...student,
+      currentPaymentMonth,
+      paymentHistory: nextPaymentHistory,
+      paymentStatus: nextStatus
+    };
+
+    setUpdatingPaymentId(student.id);
+    setPaymentFeedback("");
+    setActionError("");
+    setStudents((currentStudents) =>
+      currentStudents.map((currentStudent) =>
+        currentStudent.id === student.id ? optimisticStudent : currentStudent
+      )
+    );
+    setSelectedStudent((currentStudent) =>
+      currentStudent?.id === student.id ? optimisticStudent : currentStudent
+    );
+
+    let response: Response;
+
+    try {
+      response = await fetch("/api/admin/student-payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: nextStatus,
+          studentId: student.id
+        })
+      });
+    } catch {
+      setStudents(previousStudents);
+      setSelectedStudent(previousSelectedStudent);
+      setActionError("No se ha podido conectar con Supabase.");
+      setUpdatingPaymentId(null);
+      return;
+    }
+
+    const body = (await response.json().catch(() => null)) as {
+      currentPaymentMonth?: string;
+      message?: string;
+      paymentHistory?: Student["paymentHistory"];
+      paymentStatus?: MonthlyPaymentStatus;
+    } | null;
+
+    if (!response.ok || !body?.paymentStatus || !body.paymentHistory) {
+      setStudents(previousStudents);
+      setSelectedStudent(previousSelectedStudent);
+      setActionError(body?.message || "No se ha podido guardar el pago.");
+      setUpdatingPaymentId(null);
+      return;
+    }
+
+    const savedStudent: Student = {
+      ...student,
+      currentPaymentMonth: body.currentPaymentMonth || currentPaymentMonth,
+      paymentHistory: body.paymentHistory,
+      paymentStatus: body.paymentStatus
+    };
+
+    setStudents((currentStudents) =>
+      currentStudents.map((currentStudent) =>
+        currentStudent.id === student.id ? savedStudent : currentStudent
+      )
+    );
+    setSelectedStudent((currentStudent) =>
+      currentStudent?.id === student.id ? savedStudent : currentStudent
+    );
+    setPaymentFeedback(
+      nextStatus === "Pagado"
+        ? `${student.fullName} marcado como pagado.`
+        : `${student.fullName} vuelve a pendiente.`
+    );
+    setUpdatingPaymentId(null);
+  }
+
   async function markStudentAsInactive(student: Student) {
     let response: Response;
 
@@ -613,7 +782,17 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
           </button>
         </div>
 
-        <div className="mt-6 grid gap-3 lg:grid-cols-[1fr_240px]">
+        <div className="mt-6 grid gap-3 rounded-[18px] border border-[#E1E7ED] bg-[#F8FAFB] p-3 sm:grid-cols-3">
+          <PaymentSummaryItem label="Pagados" value={paymentSummary.paid} tone="paid" />
+          <PaymentSummaryItem
+            label="Pendientes"
+            value={paymentSummary.pending}
+            tone="pending"
+          />
+          <PaymentSummaryItem label="Total alumnos" value={paymentSummary.total} />
+        </div>
+
+        <div className="mt-6 grid gap-3 lg:grid-cols-[1fr_auto]">
           <label className="relative">
             <span className="sr-only">Buscar alumno</span>
             <Search
@@ -630,20 +809,27 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
               className="min-h-12 w-full rounded-full border border-[#D8E0E6] bg-[#F8FAFB] pl-11 pr-4 text-sm outline-none transition-colors focus:border-[#174EA6] focus:bg-white focus:ring-2 focus:ring-[#174EA6]/15"
             />
           </label>
-          <label>
-            <span className="sr-only">Filtrar por grupo</span>
-            <select
-              value={groupFilter}
-              onChange={(event) => setGroupFilter(event.target.value)}
-              className="min-h-12 w-full rounded-full border border-[#D8E0E6] bg-[#F8FAFB] px-4 text-sm font-semibold text-[#0A2540] outline-none transition-colors focus:border-[#174EA6] focus:bg-white focus:ring-2 focus:ring-[#174EA6]/15"
-            >
-              {groupOptions.map((group) => (
-                <option key={group} value={group}>
-                  {group === "Todos" ? "Todos los grupos" : group}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div
+            className="flex min-h-12 rounded-full border border-[#D8E0E6] bg-[#F8FAFB] p-1"
+            aria-label="Filtrar por estado de pago"
+          >
+            {(["Todos", "Pagados", "Pendientes"] as PaymentFilter[]).map(
+              (filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setPaymentFilter(filter)}
+                  className={`rounded-full px-4 text-sm font-semibold transition-[background-color,color,box-shadow] ${
+                    paymentFilter === filter
+                      ? "bg-white text-[#0A2540] shadow-[0_8px_22px_rgba(10,37,64,0.08)]"
+                      : "text-[#687586] hover:text-[#0A2540]"
+                  }`}
+                >
+                  {filter}
+                </button>
+              )
+            )}
+          </div>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[#687586]">
@@ -653,7 +839,23 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
           <span>
             {groupFilter === "Todos" ? "Todos los grupos" : groupFilter}
           </span>
+          <span>·</span>
+          <span>{paymentFilter}</span>
         </div>
+
+        {paymentFeedback ? (
+          <div className="mt-4 flex items-center gap-3 rounded-[14px] border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
+            <CheckCircle2 size={18} strokeWidth={1.8} aria-hidden="true" />
+            {paymentFeedback}
+          </div>
+        ) : null}
+
+        {actionError ? (
+          <div className="mt-4 flex gap-3 rounded-[14px] border border-[#C8102E]/25 bg-[#FFF1F4] p-4 text-sm font-semibold text-[#A50D25]">
+            <AlertCircle size={18} strokeWidth={1.8} aria-hidden="true" />
+            {actionError}
+          </div>
+        ) : null}
 
         <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filteredStudents.length ? (
@@ -674,18 +876,55 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
                   <StatusBadge status={student.status} />
                 </div>
 
-                <div className="mt-5 flex items-center gap-2 text-sm text-[#687586]">
+                <div className="mt-5 flex items-center justify-between gap-3 rounded-[14px] border border-[#E1E7ED] bg-white px-3 py-2.5">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7B8794]">
+                      Mes actual
+                    </p>
+                    <p className="mt-1 text-xs font-semibold capitalize text-[#0A2540]">
+                      {formatPaymentMonth(student.currentPaymentMonth)}
+                    </p>
+                  </div>
+                  <PaymentBadge status={student.paymentStatus} />
+                </div>
+
+                <div className="mt-4 flex items-center gap-2 text-sm text-[#687586]">
                   <Clock3 size={16} strokeWidth={1.8} aria-hidden="true" />
                   <span>Alta: {formatDate(student.enrollmentDate)}</span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => openStudent(student)}
-                  className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[#D8E0E6] bg-white px-4 text-sm font-semibold text-[#0A2540] transition-[border-color,color,background-color] hover:border-[#174EA6] hover:bg-[#F4F7FA] hover:text-[#174EA6]"
-                >
-                  Ver alumno
-                </button>
+                <div className="mt-5 grid gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateStudentPayment(
+                        student,
+                        student.paymentStatus === "Pagado"
+                          ? "Pendiente"
+                          : "Pagado"
+                      )
+                    }
+                    disabled={updatingPaymentId === student.id}
+                    className={`inline-flex min-h-11 w-full items-center justify-center rounded-full px-4 text-sm font-semibold transition-[background-color,transform,box-shadow,color,border-color] disabled:cursor-not-allowed disabled:opacity-65 ${
+                      student.paymentStatus === "Pagado"
+                        ? "border border-[#D8E0E6] bg-white text-[#52606E] hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+                        : "bg-[#C8102E] text-white shadow-[0_14px_34px_rgba(200,16,46,0.18)] hover:-translate-y-0.5 hover:bg-[#A50D25] hover:shadow-[0_18px_44px_rgba(200,16,46,0.24)]"
+                    }`}
+                  >
+                    {updatingPaymentId === student.id
+                      ? "Guardando..."
+                      : student.paymentStatus === "Pagado"
+                        ? "Volver a pendiente"
+                        : "Marcar como pagado"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openStudent(student)}
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[#D8E0E6] bg-white px-4 text-sm font-semibold text-[#0A2540] transition-[border-color,color,background-color] hover:border-[#174EA6] hover:bg-[#F4F7FA] hover:text-[#174EA6]"
+                  >
+                    Ver alumno
+                  </button>
+                </div>
               </article>
             ))
           ) : (
@@ -728,6 +967,35 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
           }}
         />
       ) : null}
+    </div>
+  );
+}
+
+function PaymentSummaryItem({
+  label,
+  tone,
+  value
+}: {
+  label: string;
+  tone?: "paid" | "pending";
+  value: number;
+}) {
+  return (
+    <div className="rounded-[14px] border border-white bg-white px-4 py-3 shadow-[0_10px_30px_rgba(10,37,64,0.04)]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7B8794]">
+        {label}
+      </p>
+      <p
+        className={`mt-1 text-2xl font-semibold tracking-[-0.04em] ${
+          tone === "paid"
+            ? "text-emerald-700"
+            : tone === "pending"
+              ? "text-red-700"
+              : "text-[#0A2540]"
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -820,22 +1088,25 @@ function StudentDetail({
                 {formatDate(student.enrollmentDate)}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={onEdit}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#D8E0E6] bg-white px-4 text-sm font-semibold text-[#0A2540] transition-colors hover:border-[#174EA6] hover:text-[#174EA6]"
-              >
-                <Pencil size={16} strokeWidth={1.8} aria-hidden="true" />
-                Editar datos
-              </button>
-              <button
-                type="button"
-                onClick={onDeactivate}
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#EEF2F5] px-4 text-sm font-semibold text-[#52606E] transition-colors hover:bg-[#FFE7EC] hover:text-[#A50D25]"
-              >
-                Dar de baja
-              </button>
+            <div className="flex flex-wrap items-start justify-end gap-2">
+              <PaymentBadge status={student.paymentStatus} size="large" />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#D8E0E6] bg-white px-4 text-sm font-semibold text-[#0A2540] transition-colors hover:border-[#174EA6] hover:text-[#174EA6]"
+                >
+                  <Pencil size={16} strokeWidth={1.8} aria-hidden="true" />
+                  Editar datos
+                </button>
+                <button
+                  type="button"
+                  onClick={onDeactivate}
+                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#EEF2F5] px-4 text-sm font-semibold text-[#52606E] transition-colors hover:bg-[#FFE7EC] hover:text-[#A50D25]"
+                >
+                  Dar de baja
+                </button>
+              </div>
             </div>
           </div>
 
@@ -893,7 +1164,7 @@ function StudentDetail({
           ) : null}
 
           {activeTab === "Historial" ? (
-            <EmptySection text="Sin historial de cambios registrado todavía." />
+            <PaymentHistorySection student={student} />
           ) : null}
 
           {activeTab === "Datos" ? (
@@ -984,6 +1255,53 @@ function InfoBlock({
           </div>
         ))}
       </dl>
+    </section>
+  );
+}
+
+function PaymentHistorySection({ student }: { student: Student }) {
+  const recentMonths = getRecentPaymentMonths(6);
+  const paymentsByMonth = new Map(
+    student.paymentHistory.map((payment) => [payment.month, payment])
+  );
+
+  return (
+    <section className="rounded-[18px] border border-[#E1E7ED] bg-[#F8FAFB] p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-semibold text-[#0A2540]">Historial de pagos</h3>
+          <p className="mt-1 text-sm leading-6 text-[#687586]">
+            Registro mensual sencillo conservado por alumno.
+          </p>
+        </div>
+        <PaymentBadge status={student.paymentStatus} />
+      </div>
+
+      <div className="mt-5 grid gap-3">
+        {recentMonths.map((month) => {
+          const payment = paymentsByMonth.get(month);
+          const isPaid = payment?.status === "Pagado";
+
+          return (
+            <div
+              key={month}
+              className="flex flex-col gap-3 rounded-[14px] border border-[#E1E7ED] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <p className="text-sm font-semibold capitalize text-[#0A2540]">
+                  {formatPaymentMonth(month)}
+                </p>
+                <p className="mt-1 text-xs font-medium text-[#687586]">
+                  {isPaid && payment?.paidAt
+                    ? formatDate(payment.paidAt)
+                    : "Sin pago registrado"}
+                </p>
+              </div>
+              <PaymentBadge status={isPaid ? "Pagado" : "Pendiente"} />
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
