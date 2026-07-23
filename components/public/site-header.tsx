@@ -16,7 +16,7 @@ const navigation = [
   { key: "space", href: "#instalaciones" },
   { key: "training", href: "#actividades" },
   { key: "schedule", href: "#horarios" },
-  { key: "registration", href: "#inscripcion-info" },
+  { key: "registration", href: "/inscripcion" },
   { key: "teacher", href: "#profesor" },
   { key: "contact", href: "#contacto" }
 ] as const;
@@ -39,7 +39,7 @@ export function SiteHeader() {
   const navigationLinks = navigation.map((item) => ({
     ...item,
     label: copy[item.key],
-    href: isHomePage ? item.href : `/${item.href}`
+    href: item.href.startsWith("/") ? item.href : isHomePage ? item.href : `/${item.href}`
   }));
 
   useEffect(() => {

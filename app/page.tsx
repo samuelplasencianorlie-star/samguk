@@ -731,9 +731,9 @@ export default function Home() {
                 <a href="#horarios" className="footer-link">
                   {home.quick[2]}
                 </a>
-                <a href="#inscripcion-info" className="footer-link">
+                <Link href="/inscripcion" className="footer-link">
                   {home.quick[3]}
-                </a>
+                </Link>
                 <a href="#profesor" className="footer-link">
                   {copy.navigation.teacher}
                 </a>

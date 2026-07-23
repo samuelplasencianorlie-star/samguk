@@ -28,16 +28,6 @@ export const siteConfig = {
       facebook: "https://www.facebook.com/leopoldo.garciaborges/?locale=es_ES"
     }
   },
-  activities: [
-    {
-      title: "Entrenos por curso",
-      items: ["Curso 1", "Curso 2", "Curso 3", "Curso 4"]
-    },
-    {
-      title: "Programa de Tecnificación de competiciones de combate",
-      items: ["Martes · Jueves · 17:30 a 21:00"]
-    }
-  ],
   trainingSchedule: [
     {
       days: "Lunes · Miércoles · Viernes",

@@ -40,44 +40,12 @@ export const publicTranslations = {
         eyebrow: "Entrenos",
         title: "Entrenos.",
         intro:
-          "Entrenos organizados por cursos y programa de tecnificación de competiciones de combate.",
-        cards: [
-          {
-            title: "Entrenos por curso",
-            items: ["Curso 1", "Curso 2", "Curso 3", "Curso 4"]
-          },
-          {
-            title: "Programa de Tecnificación de competiciones de combate",
-            items: ["Martes · Jueves · 17:30 a 21:00"]
-          }
-        ],
-        seeSchedule: "Ver horarios"
+          "Entrenos organizados por cursos y programa de tecnificación de competiciones de combate."
       },
       schedule: {
         eyebrow: "Horarios",
         intro: "Entrenos organizados por días y cursos.",
         block: "Bloque"
-      },
-      enrollment: {
-        eyebrow: "Inscripción",
-        title: "Solicita información para empezar en el club.",
-        intro: "Revisa los horarios y prepara tu solicitud de inscripción.",
-        primary: "Solicitar inscripción",
-        secondary: "Ver horarios",
-        steps: [
-          {
-            label: "Preparas la solicitud",
-            detail: "Rellenas los datos necesarios para iniciar el contacto con el club."
-          },
-          {
-            label: "Revisión de disponibilidad",
-            detail: "El club revisa disponibilidad, edad y siguientes pasos."
-          },
-          {
-            label: "Confirmación directa",
-            detail: "La incorporación se confirma directamente con Samguk Cabo Blanco."
-          }
-        ]
       },
       teacher: {
         eyebrow: "Maestro"
@@ -263,44 +231,12 @@ export const publicTranslations = {
         eyebrow: "Training",
         title: "Training.",
         intro:
-          "Training sessions organized by course and a combat competition technical program.",
-        cards: [
-          {
-            title: "Training by course",
-            items: ["Course 1", "Course 2", "Course 3", "Course 4"]
-          },
-          {
-            title: "Combat competition technical program",
-            items: ["Tuesday · Thursday · 17:30 to 21:00"]
-          }
-        ],
-        seeSchedule: "View schedule"
+          "Training sessions organized by course and a combat competition technical program."
       },
       schedule: {
         eyebrow: "Schedule",
         intro: "Training sessions organized by days and courses.",
         block: "Block"
-      },
-      enrollment: {
-        eyebrow: "Registration",
-        title: "Request information to start at the club.",
-        intro: "Review the schedule and prepare your registration request.",
-        primary: "Request registration",
-        secondary: "View schedule",
-        steps: [
-          {
-            label: "Prepare the request",
-            detail: "Fill in the required details to start contact with the club."
-          },
-          {
-            label: "Availability review",
-            detail: "The club reviews availability, age and next steps."
-          },
-          {
-            label: "Direct confirmation",
-            detail: "Joining is confirmed directly with Samguk Cabo Blanco."
-          }
-        ]
       },
       teacher: {
         eyebrow: "Master"
