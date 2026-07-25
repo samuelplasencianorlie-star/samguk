@@ -1404,8 +1404,8 @@ function StudentFormModal({
 
         <form onSubmit={onSubmit} className="grid gap-5 p-5 sm:p-6">
           <p className="rounded-[14px] border border-[#D8E0E6] bg-[#F8FAFB] px-4 py-3 text-sm leading-6 text-[#52606E]">
-            Para guardar ahora solo necesitas el nombre y los apellidos. El resto
-            se puede completar o editar más tarde.
+            Completa los datos disponibles y registra la aceptación presencial
+            antes de guardar una inscripción definitiva.
           </p>
           <div className="grid gap-3 md:grid-cols-4">
             <StatusCell label="Estado alumno" status={form.status} />
@@ -1732,7 +1732,12 @@ function StudentFormModal({
                 ].map(([value, label]) => (
                   <label
                     key={value || "pending"}
-                    className="flex min-h-11 items-center gap-2 rounded-[12px] border border-[#D8E0E6] px-3 text-sm font-semibold text-[#0A2540]"
+                    className={`flex min-h-11 items-center gap-2 rounded-[12px] border px-3 text-sm font-semibold transition-colors ${
+                      (value === "" && form.derechosImagen === null) ||
+                      String(form.derechosImagen) === value
+                        ? "border-[#174EA6] bg-[#EAF1FF] text-[#0A2540]"
+                        : "border-[#D8E0E6] bg-white text-[#0A2540]"
+                    }`}
                   >
                     <input
                       type="radio"

@@ -8,6 +8,10 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.clubName}`
   },
   description: `${siteConfig.fullName}. ${siteConfig.tagline}`,
+  icons: {
+    icon: "/images/samguk-logo-transparent.png",
+    apple: "/images/samguk-logo-transparent.png"
+  },
   openGraph: {
     title: siteConfig.fullName,
     description: siteConfig.tagline,

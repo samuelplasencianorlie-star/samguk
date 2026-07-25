@@ -164,7 +164,7 @@ function requestRowToRegistrationRequest(
     proteccionDatosAceptada: Boolean(request.proteccion_datos_aceptada),
     tutorConfirmado: Boolean(request.tutor_confirmado),
     responsabilidadAceptada: Boolean(request.responsabilidad_aceptada),
-    derechosImagen: Boolean(request.derechos_imagen),
+    derechosImagen: request.derechos_imagen,
     fechaAceptacionLegal: request.fecha_aceptacion_legal ?? "",
     textoLegalVersion: request.texto_legal_version ?? "",
     status: request.status ?? "Pendiente",

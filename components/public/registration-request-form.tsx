@@ -264,6 +264,8 @@ export function RegistrationRequestForm() {
     minor: false,
     responsibility: false
   });
+  const imageRightsTextRef = useRef<HTMLDivElement>(null);
+  const [imageRightsRead, setImageRightsRead] = useState(false);
   const [imageRights, setImageRights] = useState<boolean | null>(null);
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -288,6 +290,29 @@ export function RegistrationRequestForm() {
     setRequest((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
     setSubmitError("");
+  }
+
+  function markImageRightsAsReadIfFinished() {
+    const target = imageRightsTextRef.current;
+
+    if (!target) {
+      return;
+    }
+
+    if (
+      target.scrollHeight <= target.clientHeight + 10 ||
+      target.scrollTop + target.clientHeight >= target.scrollHeight - 10
+    ) {
+      setImageRightsRead(true);
+    }
+  }
+
+  function handleImageRightsScroll(event: UIEvent<HTMLDivElement>) {
+    const target = event.currentTarget;
+
+    if (target.scrollTop + target.clientHeight >= target.scrollHeight - 10) {
+      setImageRightsRead(true);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -345,7 +370,7 @@ export function RegistrationRequestForm() {
       (card) => !acceptedLegal[card.key]
     );
 
-    if (missingLegal || imageRights === null) {
+    if (missingLegal || !imageRightsRead || imageRights === null) {
       setSubmitError(formCopy.errors.legal);
       return;
     }
@@ -654,9 +679,16 @@ export function RegistrationRequestForm() {
                       : "No autorizado"}
                 </span>
               </div>
-              <details className="group mt-4 rounded-[12px] border border-[#E1E7ED] bg-[#F8FAFB]">
+              <details
+                className="group mt-4 rounded-[12px] border border-[#E1E7ED] bg-[#F8FAFB]"
+                onToggle={(event) => {
+                  if (event.currentTarget.open) {
+                    window.requestAnimationFrame(markImageRightsAsReadIfFinished);
+                  }
+                }}
+              >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-3.5 py-3 text-sm font-semibold text-[#0A2540]">
-                  Leer texto completo
+                  Abrir y leer texto completo
                   <ChevronDown
                     size={17}
                     strokeWidth={1.8}
@@ -664,7 +696,12 @@ export function RegistrationRequestForm() {
                     aria-hidden="true"
                   />
                 </summary>
-                <div className="border-t border-[#E1E7ED] px-3.5 py-3 text-sm leading-6 text-[#4F5F70]">
+                <div
+                  ref={imageRightsTextRef}
+                  onScroll={handleImageRightsScroll}
+                  className="max-h-48 overflow-y-auto border-t border-[#E1E7ED] px-3.5 py-3 text-sm leading-6 text-[#4F5F70]"
+                  tabIndex={0}
+                >
                   {legalConsentSections[6].paragraphs.map((paragraph) => (
                     <p key={paragraph} className="mb-3 last:mb-0">
                       {paragraph}
@@ -680,7 +717,9 @@ export function RegistrationRequestForm() {
                   <label
                     key={String(value)}
                     className={`flex min-h-12 items-center gap-2 rounded-[12px] border px-3.5 text-sm font-semibold transition-colors ${
-                      imageRights === value
+                      !imageRightsRead
+                        ? "border-[#E1E7ED] bg-[#F8FAFB] text-[#7B8794]"
+                        : imageRights === value
                         ? "border-[#174EA6] bg-[#EAF1FF] text-[#0A2540]"
                         : "border-[#D8E0E6] bg-white text-[#0A2540] hover:border-[#174EA6]/50"
                     }`}
@@ -689,16 +728,23 @@ export function RegistrationRequestForm() {
                       type="radio"
                       name="imageRights"
                       checked={imageRights === value}
+                      disabled={!imageRightsRead}
                       onChange={() => {
                         setImageRights(value as boolean);
                         setSubmitError("");
                       }}
-                      className="accent-[#C8102E]"
+                      className="accent-[#C8102E] disabled:cursor-not-allowed"
                     />
                     {label}
                   </label>
                 ))}
               </div>
+              {!imageRightsRead ? (
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#805A00]">
+                  <Lock size={13} strokeWidth={1.8} aria-hidden="true" />
+                  Lee el texto de derecho de imagen antes de elegir una opción.
+                </p>
+              ) : null}
             </section>
           </div>
         </section>

@@ -38,16 +38,6 @@ export function setStoredLanguage(language: PublicLanguage) {
   window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: language }));
 }
 
-function getLanguageHref(language: PublicLanguage) {
-  if (typeof window === "undefined") {
-    return `/?lang=${language}`;
-  }
-
-  const url = new URL(window.location.href);
-  url.searchParams.set("lang", language);
-  return `${url.pathname}${url.search}${url.hash}`;
-}
-
 export function usePublicLanguage() {
   const [language, setLanguage] = useState<PublicLanguage>(() =>
     getStoredLanguage()
@@ -107,7 +97,7 @@ export function LanguageSwitch({ tone = "dark" }: { tone?: "dark" | "light" }) {
       {(["es", "en"] as const).map((item) => (
         <a
           key={item}
-          href={getLanguageHref(item)}
+          href={`?lang=${item}`}
           onClick={(event) => {
             event.preventDefault();
             handleChange(item);

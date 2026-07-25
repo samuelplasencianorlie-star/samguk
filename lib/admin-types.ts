@@ -30,7 +30,7 @@ export type LegalConsent = {
   proteccionDatosAceptada: boolean;
   tutorConfirmado: boolean;
   responsabilidadAceptada: boolean;
-  derechosImagen: boolean;
+  derechosImagen: boolean | null;
   fechaAceptacionLegal: string;
   textoLegalVersion: string;
 };
@@ -52,7 +52,7 @@ export type RegistrationRequest = {
   proteccionDatosAceptada: boolean;
   tutorConfirmado: boolean;
   responsabilidadAceptada: boolean;
-  derechosImagen: boolean;
+  derechosImagen: boolean | null;
   fechaAceptacionLegal: string;
   textoLegalVersion: string;
   status: RequestStatus;

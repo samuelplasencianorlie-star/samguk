@@ -174,7 +174,9 @@ export function SpaceCarousel() {
           src={currentImage.src}
           alt={currentImage.alt}
           fill
-          loading="lazy"
+          {...(activeIndex === 0
+            ? { priority: true }
+            : { loading: "lazy" as const })}
           sizes="(max-width: 767px) calc(100vw - 2.5rem), (max-width: 1200px) 92vw, 58vw"
           className="space-carousel-image object-cover"
           draggable={false}
