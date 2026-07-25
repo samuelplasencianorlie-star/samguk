@@ -60,6 +60,7 @@ const contactMapsHref =
 const contactInstagramHref = "https://www.instagram.com/tkdsamguk/";
 const contactFacebookHref =
   "https://www.facebook.com/leopoldo.garciaborges/?locale=es_ES";
+const lumenStudioHref = "https://www.lumenstudio.digital";
 
 const contactItems = [
   {
@@ -102,6 +103,15 @@ const contactItems = [
     action: "Ver Facebook",
     href: contactFacebookHref,
     ariaLabel: "Abrir Facebook de Leopoldo García Borges",
+    target: "_blank",
+    rel: "noopener noreferrer"
+  },
+  {
+    label: "Web por LUMEN Studio",
+    value: "¿Quieres una web como esta?",
+    action: "Visitar LUMEN Studio",
+    href: lumenStudioHref,
+    ariaLabel: "Abrir la web de LUMEN Studio",
     target: "_blank",
     rel: "noopener noreferrer"
   }
@@ -245,10 +255,7 @@ export default function Home() {
             <p className="hero-values hero-rise hero-delay-1 mt-8 text-sm font-semibold tracking-[0.18em] text-[#E45D6E] sm:mt-10 sm:text-base">
               {home.hero.label}
             </p>
-            <p className="hero-rise hero-delay-2 mt-4 w-full max-w-[21rem] px-1 text-base leading-7 text-white/[0.76] sm:max-w-[34rem] sm:px-0 sm:text-xl sm:leading-8">
-              {copy.site.description}
-            </p>
-            <div className="hero-rise hero-delay-3 mt-8 flex w-full max-w-[21rem] flex-col justify-center gap-3 sm:max-w-[28rem] sm:flex-row">
+            <div className="hero-rise hero-delay-2 mt-8 flex w-full max-w-[21rem] flex-col justify-center gap-3 sm:max-w-[28rem] sm:flex-row">
               <Link
                 href="/inscripcion"
                 className="hero-primary-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-[#C8102E] px-6 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-px hover:bg-[#A50D25] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A2540] sm:min-w-[12.5rem]"
@@ -646,7 +653,7 @@ export default function Home() {
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {localizedContactItems.map((item, index) => {
-                    const icons = [Phone, Mail, MapPin, Instagram, Facebook];
+                    const icons = [Phone, Mail, MapPin, Instagram, Facebook, Building2];
                     const Icon = icons[index] || ShieldCheck;
 
                     return (

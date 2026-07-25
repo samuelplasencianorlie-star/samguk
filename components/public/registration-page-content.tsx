@@ -14,7 +14,7 @@ export function RegistrationPageContent() {
       <SiteHeader />
 
       <main className="pt-[72px]">
-        <section className="relative isolate min-h-[calc(100vh-72px)] overflow-hidden bg-[#0A2540] text-white">
+        <section className="relative isolate min-h-[calc(100vh-72px)] overflow-x-hidden bg-[#0A2540] text-white">
           <div
             className="absolute bottom-0 left-0 top-0 w-1 bg-[#C8102E]"
             aria-hidden="true"
@@ -30,40 +30,49 @@ export function RegistrationPageContent() {
             SG
           </div>
 
-          <div className="relative z-10 mx-auto grid max-w-[1440px] gap-8 px-5 py-8 sm:py-10 lg:min-h-[calc(100vh-72px)] lg:grid-cols-[0.86fr_1.14fr] lg:items-center lg:gap-12 lg:px-8 lg:py-10">
-            <div className="max-w-2xl lg:pr-6">
-              <p className="section-eyebrow text-[#E45D6E]">
-                {copy.eyebrow}
-              </p>
-              <h1 className="mt-4 text-4xl font-semibold leading-[1] tracking-[-0.04em] sm:text-5xl lg:text-6xl">
-                {copy.title}
-              </h1>
-              <p className="mt-5 max-w-xl text-base leading-7 text-white/[0.78] sm:text-lg">
-                {copy.intro}
-              </p>
+          <div className="relative z-10 mx-auto grid max-w-[1440px] gap-8 px-5 py-8 sm:py-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start lg:gap-12 lg:px-8 lg:py-12">
+            <div className="max-w-2xl lg:sticky lg:top-28 lg:pr-6">
+              <div className="registration-side-panel relative overflow-hidden border border-white/[0.12] bg-white/[0.055] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.16)] backdrop-blur-xl sm:p-8 lg:p-9">
+                <div
+                  className="absolute -right-20 -top-24 h-56 w-56 rounded-full border border-white/[0.08]"
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute bottom-8 right-8 h-24 w-24 border border-[#C8102E]/20 opacity-70 rotate-45"
+                  aria-hidden="true"
+                />
+                <div className="relative">
+                  <p className="section-eyebrow text-[#E45D6E]">
+                    {copy.eyebrow}
+                  </p>
+                  <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.045em] sm:text-5xl lg:text-[3.8rem]">
+                    {copy.title}
+                  </h1>
+                  <p className="mt-5 max-w-xl text-base leading-7 text-white/[0.78] sm:text-lg">
+                    {copy.intro}
+                  </p>
 
-              <div className="mt-7 border-l-2 border-[#C8102E] bg-white/[0.06] px-5 py-4 backdrop-blur">
-                <p className="text-sm leading-6 text-white/[0.76]">
-                  {copy.note}
-                </p>
-              </div>
-
-              <div className="mt-8 hidden gap-3 lg:grid">
-                {copy.steps.map((label, index) => (
-                  <div
-                    key={label}
-                    className="grid grid-cols-[2.5rem_1fr] items-center gap-3 border-t border-white/[0.12] pt-3 text-sm text-white/[0.78]"
-                  >
-                    <span className="grid h-9 w-9 place-items-center border border-white/[0.16] text-xs font-semibold tabular-nums text-[#E45D6E]">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="font-medium">{label}</span>
+                  <div className="mt-7 border-l-2 border-[#C8102E] bg-white/[0.07] px-5 py-4">
+                    <p className="text-sm leading-6 text-white/[0.76]">
+                      {copy.note}
+                    </p>
                   </div>
-                ))}
+
+                  <div className="mt-7 flex flex-wrap gap-2.5">
+                    {copy.steps.map((label) => (
+                      <span
+                        key={label}
+                        className="inline-flex min-h-9 items-center border border-white/[0.13] bg-white/[0.06] px-3 text-xs font-semibold text-white/[0.78]"
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="lg:pl-4">
+            <div className="lg:pl-2">
               <RegistrationRequestForm />
             </div>
           </div>

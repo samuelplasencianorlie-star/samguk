@@ -89,6 +89,12 @@ export const publicTranslations = {
             label: "Facebook",
             action: "Ver Facebook",
             ariaLabel: "Abrir Facebook de Leopoldo García Borges"
+          },
+          {
+            label: "Web por LUMEN Studio",
+            value: "¿Quieres una web como esta?",
+            action: "Visitar LUMEN Studio",
+            ariaLabel: "Abrir la web de LUMEN Studio"
           }
         ]
       },
@@ -278,6 +284,12 @@ export const publicTranslations = {
             label: "Facebook",
             action: "View Facebook",
             ariaLabel: "Open Leopoldo García Borges Facebook"
+          },
+          {
+            label: "Website by LUMEN Studio",
+            value: "Want a website like this?",
+            action: "Visit LUMEN Studio",
+            ariaLabel: "Open LUMEN Studio website"
           }
         ]
       },
