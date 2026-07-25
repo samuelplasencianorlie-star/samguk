@@ -1,139 +1,76 @@
-export const LEGAL_CONSENT_VERSION = "SAMGUK_CONSENTIMIENTO_2026_07";
+export const LEGAL_CONSENT_VERSION = "SAMGUK_PREINSCRIPCION_2026_07";
 
 export const legalConsentSections = [
   {
-    title: "Condiciones generales del club",
+    title: "Condiciones del Club Deportivo SAMGUK",
+    summary:
+      "Aceptación de las políticas internas del club para participar en sus actividades.",
     paragraphs: [
-      "Al enviar esta solicitud, el padre, madre, tutor legal o persona responsable declara que los datos introducidos son correctos y que desea solicitar la incorporación del alumno o alumna a las actividades del club SAMGUK Cabo Blanco.",
-      "El envío de esta solicitud no confirma automáticamente la plaza. El club revisará la disponibilidad, la edad del alumno o alumna y cualquier información adicional antes de confirmar la incorporación definitiva.",
-      "El club podrá contactar con la persona responsable para completar información, resolver dudas o confirmar la disponibilidad de plaza."
+      "Al solicitar la inscripción en el Club Deportivo SAMGUK, la persona que firma manifiesta haber leído, comprendido y aceptado las políticas y normas establecidas por el club para la participación del alumno o alumna en sus actividades.",
+      "La preinscripción enviada desde la web no confirma por sí sola la incorporación definitiva. La admisión queda sujeta a la revisión del club, la disponibilidad de plaza y la formalización posterior que indique la dirección del centro.",
+      "La persona inscrita se compromete a respetar las normas de convivencia, disciplina, seguridad, uso de instalaciones y organización interna del club durante su participación en cualquier actividad de SAMGUK."
     ]
   },
   {
     title: "Protección de datos personales",
+    summary:
+      "Información básica del tratamiento conforme al RGPD y la Ley Orgánica 3/2018.",
     paragraphs: [
-      "Los datos facilitados en este formulario serán utilizados únicamente para la gestión de la solicitud de inscripción, la comunicación con la familia o tutor legal y la organización interna de los grupos de entrenamiento.",
-      "Estos datos podrán incluir nombre del alumno o alumna, edad, fecha de nacimiento, dirección, código postal, DNI/NIE, teléfonos, email, datos de la persona responsable y cualquier mensaje adicional enviado en el formulario.",
-      "El club se compromete a tratar esta información de forma responsable y a no utilizarla para fines ajenos a la gestión del club."
+      "Los datos personales facilitados serán tratados por Club Deportivo SAMGUK para gestionar la preinscripción, contactar con la persona interesada o responsable legal, organizar la actividad deportiva y mantener la gestión administrativa interna del club.",
+      "La base jurídica del tratamiento es el consentimiento de la persona interesada o, en caso de menores, de su padre, madre, tutor legal o persona responsable, junto con la necesidad de gestionar la relación solicitada con el club.",
+      "Los datos podrán incluir nombre y apellidos, fecha de nacimiento, DNI/NIE o pasaporte, dirección, código postal, teléfonos, email y datos de la persona responsable cuando corresponda.",
+      "La normativa aplicable incluye el Reglamento (UE) 2016/679, General de Protección de Datos, y la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales.",
+      "La persona interesada puede ejercer los derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad mediante los canales oficiales del club."
     ]
   },
   {
-    title: "Participación de menores de edad",
+    title: "Menores de edad",
+    summary:
+      "Consentimiento de padre, madre, tutor legal o persona responsable cuando el alumno sea menor.",
     paragraphs: [
-      "En caso de que el alumno o alumna sea menor de edad, la solicitud debe ser enviada por su padre, madre, tutor legal o persona autorizada.",
-      "La persona que envía la solicitud declara que tiene autorización suficiente para facilitar los datos del menor y solicitar su participación en las actividades del club."
+      "Cuando el alumno o alumna sea menor de edad, la preinscripción debe ser realizada o autorizada por su padre, madre, tutor legal o persona responsable.",
+      "La persona que acepta declara que cuenta con legitimación suficiente para facilitar los datos del menor y solicitar su participación en las actividades del club.",
+      "La persona responsable se compromete a comunicar al club cualquier condición médica, alergia, lesión, limitación física o circunstancia relevante que pueda afectar a la práctica deportiva del menor."
     ]
   },
   {
-    title: "Responsabilidad y seguridad",
+    title: "Responsabilidad y seguridad deportiva",
+    summary:
+      "Reconocimiento de los riesgos propios de la práctica deportiva y compromiso de seguridad.",
     paragraphs: [
-      "La práctica deportiva implica cierto nivel de esfuerzo físico y riesgo propio de la actividad.",
-      "El club organizará las clases siguiendo criterios de seguridad, supervisión y adaptación al nivel de los alumnos. Aun así, la persona responsable entiende que pueden producirse lesiones, molestias físicas o incidentes derivados de la práctica deportiva.",
-      "La persona responsable se compromete a informar al club de cualquier condición médica, lesión, alergia, limitación física o circunstancia relevante que pueda afectar a la participación del alumno o alumna en las clases."
+      "La práctica de taekwondo y artes marciales implica esfuerzo físico, contacto deportivo, aprendizaje técnico y riesgos inherentes a la actividad.",
+      "La persona inscrita o su responsable legal declara conocer estos riesgos y se compromete a seguir las indicaciones del profesorado, respetar las normas de seguridad y utilizar correctamente las instalaciones y el material del club.",
+      "El club organizará la actividad con criterios de seguridad, supervisión y adecuación al nivel del alumnado, sin perjuicio de los riesgos propios de la práctica deportiva."
+    ]
+  },
+  {
+    title: "Uso responsable de instalaciones y equipamiento",
+    summary:
+      "Compromiso de uso adecuado, seguro y respetuoso del espacio y material del club.",
+    paragraphs: [
+      "Los alumnos y alumnas deberán utilizar las instalaciones, equipamiento y material deportivo del club de forma adecuada, segura y respetuosa.",
+      "Cualquier daño causado por uso indebido, conducta negligente o incumplimiento de las normas podrá ser valorado por el club y dar lugar a las medidas que correspondan conforme a sus normas internas."
+    ]
+  },
+  {
+    title: "Derecho de admisión, permanencia y modificación",
+    summary:
+      "Facultad del club para organizar plazas, horarios, tarifas y permanencia.",
+    paragraphs: [
+      "El club se reserva el derecho de admisión y permanencia en sus instalaciones y actividades cuando existan motivos organizativos, disciplinarios, de seguridad o falta de disponibilidad de plaza.",
+      "El club podrá modificar horarios, grupos, tarifas o condiciones de participación cuando sea necesario para la organización de la actividad, comunicándolo por los canales habituales del club."
     ]
   },
   {
     title: "Derecho de imagen",
+    summary:
+      "Autorización independiente para fotografías, vídeos y comunicaciones del club.",
     paragraphs: [
-      "Durante las clases, actividades, eventos, exhibiciones o comunicaciones del club, podrían tomarse fotografías o vídeos en los que aparezcan alumnos o alumnas.",
-      "Estas imágenes podrían utilizarse para fines relacionados con la actividad del club, como comunicación interna, promoción del club, redes sociales, página web, cartelería, material informativo o recuerdo de actividades.",
-      "La aceptación del derecho de imagen autoriza al club a utilizar dichas imágenes siempre dentro del contexto deportivo, educativo y promocional del club."
-    ]
-  },
-  {
-    title: "Autorización para fotografías y vídeos",
-    paragraphs: [
-      "Al marcar la aceptación correspondiente, la persona responsable autoriza que el alumno o alumna pueda aparecer en fotografías y vídeos tomados durante actividades del club.",
-      "Si la persona responsable no desea autorizar el uso de imagen, deberá comunicarlo expresamente al club para que quede registrado en la ficha del alumno o alumna.",
-      "El club deberá poder consultar en el panel privado si cada alumno tiene o no aceptado el derecho de imagen."
-    ]
-  },
-  {
-    title: "Derecho de admisión y permanencia",
-    paragraphs: [
-      "El club se reserva el derecho de admitir, rechazar o cancelar una inscripción si considera que no hay plazas disponibles, que el grupo solicitado no es adecuado o que existen motivos organizativos, disciplinarios o de seguridad.",
-      "El club también podrá modificar horarios, grupos o condiciones de participación si fuera necesario para el correcto funcionamiento de la actividad."
-    ]
-  },
-  {
-    title: "Comunicación con el club",
-    paragraphs: [
-      "La persona responsable acepta que el club pueda contactar por teléfono, email o cualquier otro medio facilitado en el formulario para gestionar la solicitud, resolver dudas, confirmar horarios o comunicar información relacionada con la actividad."
-    ]
-  },
-  {
-    title: "Aceptación final",
-    paragraphs: [
-      "Al marcar la casilla de aceptación y enviar la solicitud, la persona responsable declara haber leído y comprendido la información legal, las condiciones generales del club, la política de protección de datos, la responsabilidad asociada a la práctica deportiva y la información relativa al derecho de imagen."
+      "La imagen, voz o nombre de una persona identificada o identificable forma parte de sus derechos de la personalidad, de acuerdo con la Ley Orgánica 1/1982, de protección civil del derecho al honor, a la intimidad personal y familiar y a la propia imagen.",
+      "La autorización del derecho de imagen permite al club utilizar fotografías, vídeos o grabaciones tomadas en actividades, clases, eventos o comunicaciones del club con fines informativos, deportivos o promocionales relacionados con SAMGUK.",
+      "Esta autorización es independiente del resto de condiciones. La persona interesada o responsable legal puede autorizar o no autorizar el uso de imagen sin que ello impida tramitar la preinscripción."
     ]
   }
 ] as const;
 
-export const legalConsentSectionsEn = [
-  {
-    title: "Club general conditions",
-    paragraphs: [
-      "By sending this request, the parent, legal guardian or responsible person declares that the details entered are correct and that they wish to request the student's participation in SAMGUK Cabo Blanco club activities.",
-      "Sending this request does not automatically confirm a place. The club will review availability, the student's age and any additional information before confirming final admission.",
-      "The club may contact the responsible person to complete information, answer questions or confirm place availability."
-    ]
-  },
-  {
-    title: "Personal data protection",
-    paragraphs: [
-      "The data provided in this form will be used only to manage the registration request, communicate with the family or legal guardian and organize training groups internally.",
-      "This data may include the student's name, age, date of birth, address, postal code, ID/NIE, phone numbers, email, responsible person's details and any additional message sent through the form.",
-      "The club undertakes to handle this information responsibly and not to use it for purposes unrelated to club management."
-    ]
-  },
-  {
-    title: "Participation of minors",
-    paragraphs: [
-      "If the student is under age, the request must be sent by their parent, legal guardian or authorized person.",
-      "The person sending the request declares that they have sufficient authorization to provide the minor's data and request their participation in club activities."
-    ]
-  },
-  {
-    title: "Responsibility and safety",
-    paragraphs: [
-      "Sports practice involves a certain level of physical effort and risk inherent to the activity.",
-      "The club will organize classes according to safety, supervision and adaptation criteria for the students' level. Even so, the responsible person understands that injuries, physical discomfort or incidents related to sports practice may occur.",
-      "The responsible person agrees to inform the club of any medical condition, injury, allergy, physical limitation or relevant circumstance that may affect the student's participation in classes."
-    ]
-  },
-  {
-    title: "Image rights",
-    paragraphs: [
-      "During classes, activities, events, exhibitions or club communications, photographs or videos may be taken in which students appear.",
-      "These images may be used for purposes related to club activity, such as internal communication, club promotion, social media, website, posters, information material or activity memories.",
-      "Acceptance of image rights authorizes the club to use these images always within the club's sports, educational and promotional context."
-    ]
-  },
-  {
-    title: "Authorization for photographs and videos",
-    paragraphs: [
-      "By selecting the relevant acceptance, the responsible person authorizes the student to appear in photographs and videos taken during club activities.",
-      "If the responsible person does not wish to authorize image use, they must expressly inform the club so it can be recorded in the student's file.",
-      "The club must be able to check in the private panel whether each student has accepted image rights or not."
-    ]
-  },
-  {
-    title: "Right of admission and permanence",
-    paragraphs: [
-      "The club reserves the right to admit, reject or cancel a registration if it considers that there are no places available, that the requested group is not suitable or that there are organizational, disciplinary or safety reasons.",
-      "The club may also modify schedules, groups or participation conditions if necessary for the proper operation of the activity."
-    ]
-  },
-  {
-    title: "Communication with the club",
-    paragraphs: [
-      "The responsible person accepts that the club may contact them by phone, email or any other means provided in the form to manage the request, answer questions, confirm schedules or communicate information related to the activity."
-    ]
-  },
-  {
-    title: "Final acceptance",
-    paragraphs: [
-      "By ticking the acceptance box and submitting the request, the responsible person declares that they have read and understood the legal information, the club's general conditions, the data protection policy, the responsibility associated with sports practice and the information related to image rights."
-    ]
-  }
-] as const;
+export const legalConsentSectionsEn = legalConsentSections;

@@ -298,6 +298,7 @@ export async function getRegistrationRequests(): Promise<
         "submitted_at"
       ].join(",")
     )
+    .eq("status", "Pendiente")
     .order("submitted_at", { ascending: false });
 
   if (error || !data) {

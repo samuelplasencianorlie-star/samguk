@@ -103,22 +103,22 @@ export const publicTranslations = {
     },
     registration: {
       page: {
-        eyebrow: "Solicitud inicial",
-        title: "Solicitud de inscripción para Samguk Cabo Blanco.",
+        eyebrow: "Preinscripción",
+        title: "Preinscripción para Samguk Cabo Blanco.",
         intro:
-          "Rellena tus datos para preparar una solicitud inicial y contactar con el club.",
+          "Rellena los datos del alumno y acepta las condiciones necesarias para que el club revise la incorporación.",
         note:
-          "La solicitud no confirma la incorporación automáticamente. El club revisará disponibilidad y siguientes pasos antes de formalizar cualquier alta.",
+          "La preinscripción no confirma la incorporación automáticamente. El club revisará la información antes de formalizar cualquier alta.",
         steps: [
-          "Preparas tus datos",
-          "Contactas con el club",
-          "El club revisa disponibilidad"
+          "Completa los datos",
+          "Acepta las condiciones",
+          "El club revisa la preinscripción"
         ]
       },
       form: {
         eyebrow: "Formulario",
-        title: "Datos de la solicitud",
-        helper: "Prepara tus datos para compartirlos con el club.",
+        title: "Datos de la preinscripción",
+        helper: "Datos necesarios para que el club revise la incorporación.",
         studentLegend: "Datos del alumno/a",
         contactLegend: "Responsable legal y contacto",
         fields: {
@@ -292,22 +292,22 @@ export const publicTranslations = {
     },
     registration: {
       page: {
-        eyebrow: "Initial request",
-        title: "Registration request for Samguk Cabo Blanco.",
+        eyebrow: "Pre-registration",
+        title: "Pre-registration for Samguk Cabo Blanco.",
         intro:
-          "Fill in your details to prepare an initial request and contact the club.",
+          "Fill in the student's details and accept the required conditions so the club can review the admission.",
         note:
-          "The request does not automatically confirm a place. The club will review availability and next steps before any registration is formalized.",
+          "The pre-registration does not automatically confirm a place. The club will review the information before formalizing any admission.",
         steps: [
-          "Prepare your details",
-          "Contact the club",
-          "The club reviews availability"
+          "Complete the details",
+          "Accept the conditions",
+          "The club reviews the pre-registration"
         ]
       },
       form: {
         eyebrow: "Form",
-        title: "Request details",
-        helper: "Prepare your details to share them with the club.",
+        title: "Pre-registration details",
+        helper: "Required details so the club can review the admission.",
         studentLegend: "Student details",
         contactLegend: "Legal guardian and contact",
         fields: {

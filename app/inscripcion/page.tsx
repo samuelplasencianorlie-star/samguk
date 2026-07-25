@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { RegistrationPageContent } from "@/components/public/registration-page-content";
 
 export const metadata: Metadata = {
-  title: "Solicita tu inscripción",
+  title: "Preinscripción",
   description:
-    "Prepara una solicitud inicial de inscripción para Samguk Cabo Blanco."
+    "Preinscripción formal para Samguk Cabo Blanco con datos del alumno y aceptación de condiciones."
 };
 
 export default function RegistrationPage() {

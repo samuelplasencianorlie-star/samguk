@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { calculateAge } from "@/lib/age";
+import { LEGAL_CONSENT_VERSION } from "@/lib/legal-consent";
 import { getSupabaseConfigOrThrow } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
@@ -16,7 +17,12 @@ type RegistrationPayload = {
   phone2?: unknown;
   email?: unknown;
   message?: unknown;
+  condicionesAceptadas?: unknown;
   proteccionDatosAceptada?: unknown;
+  tutorConfirmado?: unknown;
+  responsabilidadAceptada?: unknown;
+  derechosImagen?: unknown;
+  textoLegalVersion?: unknown;
 };
 
 function text(value: unknown) {
@@ -42,6 +48,7 @@ export async function POST(request: NextRequest) {
   const email = text(payload.email).toLowerCase();
   const birthDate = text(payload.birthDate);
   const age = birthDate ? calculateAge(birthDate) : null;
+  const isMinor = age !== null && age < 18;
 
   if (fullName.length < 2) {
     return NextResponse.json(
@@ -66,7 +73,21 @@ export async function POST(request: NextRequest) {
 
   if (payload.proteccionDatosAceptada !== true) {
     return NextResponse.json(
-      { message: "Debes aceptar la política de privacidad." },
+      { message: "Debes aceptar la protección de datos." },
+      { status: 400 }
+    );
+  }
+
+  if (payload.condicionesAceptadas !== true) {
+    return NextResponse.json(
+      { message: "Debes aceptar las condiciones del club." },
+      { status: 400 }
+    );
+  }
+
+  if (payload.responsabilidadAceptada !== true) {
+    return NextResponse.json(
+      { message: "Debes aceptar la responsabilidad deportiva." },
       { status: 400 }
     );
   }
@@ -77,6 +98,48 @@ export async function POST(request: NextRequest) {
   ) {
     return NextResponse.json(
       { message: "La fecha de nacimiento indicada no es válida." },
+      { status: 400 }
+    );
+  }
+
+  if (!birthDate || age === null) {
+    return NextResponse.json(
+      { message: "Introduce una fecha de nacimiento válida." },
+      { status: 400 }
+    );
+  }
+
+  if (isMinor && text(payload.guardian).length < 2) {
+    return NextResponse.json(
+      { message: "Introduce el nombre del responsable legal." },
+      { status: 400 }
+    );
+  }
+
+  if (text(payload.address).length < 4) {
+    return NextResponse.json(
+      { message: "Introduce una dirección válida." },
+      { status: 400 }
+    );
+  }
+
+  if (!/^[0-9]{5}$/.test(text(payload.postalCode))) {
+    return NextResponse.json(
+      { message: "Introduce un código postal válido." },
+      { status: 400 }
+    );
+  }
+
+  if (text(payload.dniNie).length < 5) {
+    return NextResponse.json(
+      { message: "Introduce un DNI/NIE o pasaporte válido." },
+      { status: 400 }
+    );
+  }
+
+  if (typeof payload.derechosImagen !== "boolean") {
+    return NextResponse.json(
+      { message: "Indica si autorizas o no el derecho de imagen." },
       { status: 400 }
     );
   }
@@ -98,9 +161,13 @@ export async function POST(request: NextRequest) {
       phone2: nullableText(payload.phone2),
       email: email || null,
       message: nullableText(payload.message),
+      condiciones_aceptadas: true,
       proteccion_datos_aceptada: true,
+      tutor_confirmado: isMinor ? payload.tutorConfirmado === true : true,
+      responsabilidad_aceptada: true,
+      derechos_imagen: payload.derechosImagen,
       fecha_aceptacion_legal: new Date().toISOString(),
-      texto_legal_version: "contact-request-2026-07"
+      texto_legal_version: text(payload.textoLegalVersion) || LEGAL_CONSENT_VERSION
     });
 
     if (error) {

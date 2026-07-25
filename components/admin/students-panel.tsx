@@ -1666,8 +1666,14 @@ function StudentFormModal({
             <div className="sm:col-span-2 grid gap-3">
               <LegalAcceptanceCard
                 title="Condiciones generales del club"
-                summary="La persona que acepta confirma que los datos son correctos y que conoce las condiciones generales de participación en el club."
-                fullText={legalConsentSections[0]?.paragraphs.join("\n\n") ?? ""}
+                summary={legalConsentSections[0]?.summary ?? ""}
+                fullText={[
+                  legalConsentSections[0]?.paragraphs.join("\n\n"),
+                  legalConsentSections[4]?.paragraphs.join("\n\n"),
+                  legalConsentSections[5]?.paragraphs.join("\n\n")
+                ]
+                  .filter(Boolean)
+                  .join("\n\n")}
                 checked={form.condicionesAceptadas}
                 onChange={(checked) =>
                   onUpdate("condicionesAceptadas", checked)
@@ -1675,7 +1681,7 @@ function StudentFormModal({
               />
               <LegalAcceptanceCard
                 title="Protección de datos"
-                summary="Los datos personales se usarán para la gestión interna del club, la comunicación y la organización de los grupos."
+                summary={legalConsentSections[1]?.summary ?? ""}
                 fullText={legalConsentSections[1]?.paragraphs.join("\n\n") ?? ""}
                 checked={form.proteccionDatosAceptada}
                 onChange={(checked) =>
@@ -1685,7 +1691,7 @@ function StudentFormModal({
               {isMinor ? (
                 <LegalAcceptanceCard
                   title="Alumno menor de edad"
-                  summary="El padre, madre o tutor legal confirma que autoriza la inscripción presencial del menor."
+                  summary={legalConsentSections[2]?.summary ?? ""}
                   fullText={legalConsentSections[2]?.paragraphs.join("\n\n") ?? ""}
                   checked={form.tutorConfirmado}
                   onChange={(checked) => onUpdate("tutorConfirmado", checked)}
@@ -1693,7 +1699,7 @@ function StudentFormModal({
               ) : null}
               <LegalAcceptanceCard
                 title="Responsabilidad y condiciones deportivas"
-                summary="La persona que acepta entiende la responsabilidad asociada a la práctica deportiva y se compromete a informar de cualquier circunstancia relevante."
+                summary={legalConsentSections[3]?.summary ?? ""}
                 fullText={legalConsentSections[3]?.paragraphs.join("\n\n") ?? ""}
                 checked={form.responsabilidadAceptada}
                 onChange={(checked) =>
@@ -1715,7 +1721,7 @@ function StudentFormModal({
                   Ver texto completo
                 </summary>
                 <p className="mt-3 whitespace-pre-line">
-                  {legalConsentSections[4]?.paragraphs.join("\n\n")}
+                  {legalConsentSections[6]?.paragraphs.join("\n\n")}
                 </p>
               </details>
               <div className="mt-4 grid gap-2 sm:grid-cols-3">
