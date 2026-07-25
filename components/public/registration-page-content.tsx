@@ -20,7 +20,7 @@ export function RegistrationPageContent() {
             aria-hidden="true"
           />
           <div
-            className="absolute inset-y-0 right-0 hidden w-[55%] bg-[#F5F7FA] lg:block"
+            className="absolute inset-y-0 right-0 hidden w-[62%] bg-[#F5F7FA] lg:block"
             aria-hidden="true"
           />
           <div
