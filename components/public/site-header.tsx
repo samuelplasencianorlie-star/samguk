@@ -102,14 +102,14 @@ export function SiteHeader() {
       }`}
     >
       <nav
-        className={`mx-auto flex max-w-[1440px] items-center justify-between px-3 sm:px-5 lg:px-8 ${
+        className={`mx-auto flex w-full max-w-[1440px] min-w-0 items-center justify-between px-3 sm:px-5 lg:px-8 ${
           isHomePage ? "h-[76px] sm:h-[92px]" : "h-[72px]"
         }`}
         aria-label={copy.mobileMenu}
       >
         <Link
           href="/"
-          className="header-brand group flex min-w-fit items-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#174EA6] focus-visible:ring-offset-4"
+          className="header-brand group flex shrink-0 items-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#174EA6] focus-visible:ring-offset-4"
           aria-label={copy.homeAria}
         >
           <Image
@@ -143,7 +143,7 @@ export function SiteHeader() {
           ))}
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-3">
           <div className="hidden sm:block">
             <LanguageSwitch tone={isHomePage ? "light" : "dark"} />
           </div>

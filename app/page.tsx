@@ -189,6 +189,8 @@ export default function Home() {
     ...item,
     ...home.contact.cards[index]
   }));
+  const [spaceAddressPrimary, spaceAddressSecondary] =
+    siteConfig.contact.address.split(" - ");
 
   return (
     <div className="public-site min-h-screen bg-white text-[#111318]">
@@ -349,49 +351,55 @@ export default function Home() {
 
         <section
           id="instalaciones"
-          className="space-section relative isolate scroll-mt-24 overflow-hidden bg-[#071B2D] py-20 text-white sm:py-24 lg:py-28"
+          className="space-section relative isolate scroll-mt-24 overflow-hidden bg-[#071B2D] py-14 text-white sm:py-24 lg:py-28"
         >
           <div className="section-orbit section-orbit-left" aria-hidden="true" />
-          <div className="relative z-10 mx-auto grid max-w-[1440px] gap-10 px-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-8">
+          <div className="relative z-10 mx-auto grid max-w-[1440px] gap-7 px-5 sm:gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-8">
             <Reveal>
-              <div className="max-w-xl">
+              <div className="max-w-xl min-w-0">
                 <p className="section-eyebrow text-[#E45D6E]">
                   {home.space.eyebrow}
                 </p>
-                <h2 className="mt-4 text-[clamp(2.6rem,5vw,5.4rem)] font-semibold leading-[0.92] tracking-[-0.055em]">
+                <h2 className="mt-4 text-[clamp(2.4rem,13vw,5.4rem)] font-semibold leading-[0.92] tracking-[-0.055em] sm:text-[clamp(2.6rem,5vw,5.4rem)]">
                   {home.space.title}
                 </h2>
                 <p className="mt-7 max-w-md text-sm leading-6 text-white/[0.68]">
                   {copy.site.description}
                 </p>
-                <div className="mt-10 grid gap-px overflow-hidden border border-white/[0.14] bg-white/[0.14] sm:grid-cols-2">
-                  <div className="bg-white/[0.06] p-5 backdrop-blur">
+                <div className="mt-8 grid gap-px overflow-hidden rounded-[18px] border border-white/[0.14] bg-white/[0.14] sm:mt-10 sm:grid-cols-2 sm:rounded-none">
+                  <div className="bg-white/[0.06] p-4 backdrop-blur sm:p-5">
                     <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/[0.42]">
                       {home.space.club}
                     </span>
-                    <p className="mt-3 text-lg font-semibold">
+                    <p className="mt-3 text-base font-semibold sm:text-lg">
                       {siteConfig.fullName}
                     </p>
                   </div>
-                  <div className="min-w-0 bg-white/[0.06] p-5 backdrop-blur">
+                  <div className="min-w-0 bg-white/[0.06] p-4 backdrop-blur sm:p-5">
                     <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/[0.42]">
                       {home.space.address}
                     </span>
                     <p
-                      className="mt-3 max-w-full whitespace-normal break-words text-sm font-semibold leading-6 sm:text-lg sm:leading-7"
+                      className="mt-3 block w-full max-w-full min-w-0 whitespace-normal break-words text-sm font-semibold leading-6 sm:text-lg sm:leading-7"
                       style={{
-                        maxWidth: "calc(100vw - 4rem)",
-                        overflowWrap: "anywhere"
+                        overflowWrap: "anywhere",
+                        wordBreak: "break-word",
+                        hyphens: "auto"
                       }}
                     >
-                      {siteConfig.contact.address}
+                      <span className="block">{spaceAddressPrimary}</span>
+                      {spaceAddressSecondary ? (
+                        <span className="block">{spaceAddressSecondary}</span>
+                      ) : null}
                     </p>
                   </div>
                 </div>
               </div>
             </Reveal>
             <Reveal delay={100}>
-              <SpaceCarousel />
+              <div className="min-w-0 max-w-full overflow-hidden">
+                <SpaceCarousel />
+              </div>
             </Reveal>
           </div>
         </section>

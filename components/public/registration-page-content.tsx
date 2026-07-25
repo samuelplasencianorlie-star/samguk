@@ -30,9 +30,9 @@ export function RegistrationPageContent() {
             SG
           </div>
 
-          <div className="relative z-10 mx-auto grid max-w-[1440px] gap-8 px-5 py-8 sm:py-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start lg:gap-12 lg:px-8 lg:py-12">
-            <div className="max-w-2xl lg:sticky lg:top-28 lg:pr-6">
-              <div className="registration-side-panel relative overflow-hidden border border-white/[0.12] bg-white/[0.055] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.16)] backdrop-blur-xl sm:p-8 lg:p-9">
+          <div className="relative z-10 mx-auto grid w-full max-w-[1440px] min-w-0 gap-5 overflow-x-hidden px-5 py-5 sm:gap-8 sm:py-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start lg:gap-12 lg:px-8 lg:py-12">
+            <div className="min-w-0 max-w-2xl lg:sticky lg:top-28 lg:pr-6">
+              <div className="registration-side-panel relative overflow-hidden border border-white/[0.12] bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.16)] backdrop-blur-xl sm:p-8 lg:p-9">
                 <div
                   className="absolute -right-20 -top-24 h-56 w-56 rounded-full border border-white/[0.08]"
                   aria-hidden="true"
@@ -45,20 +45,20 @@ export function RegistrationPageContent() {
                   <p className="section-eyebrow text-[#E45D6E]">
                     {copy.eyebrow}
                   </p>
-                  <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.045em] sm:text-5xl lg:text-[3.8rem]">
+                  <h1 className="mt-3 text-[2.35rem] font-semibold leading-[1.02] tracking-[-0.045em] sm:mt-4 sm:text-5xl lg:text-[3.8rem]">
                     {copy.title}
                   </h1>
-                  <p className="mt-5 max-w-xl text-base leading-7 text-white/[0.78] sm:text-lg">
+                  <p className="mt-4 max-w-xl text-[0.95rem] leading-6 text-white/[0.78] sm:mt-5 sm:text-lg sm:leading-7">
                     {copy.intro}
                   </p>
 
-                  <div className="mt-7 border-l-2 border-[#C8102E] bg-white/[0.07] px-5 py-4">
+                  <div className="mt-5 border-l-2 border-[#C8102E] bg-white/[0.07] px-4 py-3 sm:mt-7 sm:px-5 sm:py-4">
                     <p className="text-sm leading-6 text-white/[0.76]">
                       {copy.note}
                     </p>
                   </div>
 
-                  <div className="mt-7 flex flex-wrap gap-2.5">
+                  <div className="mt-5 flex flex-wrap gap-2 sm:mt-7 sm:gap-2.5">
                     {copy.steps.map((label) => (
                       <span
                         key={label}
@@ -72,7 +72,7 @@ export function RegistrationPageContent() {
               </div>
             </div>
 
-            <div className="lg:pl-2">
+            <div className="min-w-0 max-w-full overflow-hidden lg:pl-2">
               <RegistrationRequestForm />
             </div>
           </div>

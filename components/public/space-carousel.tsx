@@ -14,6 +14,7 @@ export function SpaceCarousel() {
   const [isPausedByHover, setIsPausedByHover] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(true);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [manualInteraction, setManualInteraction] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const total = images.length;
@@ -56,6 +57,20 @@ export function SpaceCarousel() {
 
     return () => {
       motionQuery.removeEventListener("change", updateMotionPreference);
+    };
+  }, []);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    const updateViewport = () => {
+      setIsMobileViewport(mobileQuery.matches);
+    };
+
+    updateViewport();
+    mobileQuery.addEventListener("change", updateViewport);
+
+    return () => {
+      mobileQuery.removeEventListener("change", updateViewport);
     };
   }, []);
 
@@ -108,9 +123,14 @@ export function SpaceCarousel() {
     return null;
   }
 
+  const objectPosition =
+    isMobileViewport && currentImage.mobileObjectPosition
+      ? currentImage.mobileObjectPosition
+      : currentImage.objectPosition ?? "50% 50%";
+
   return (
     <div
-      className="space-carousel group relative"
+      className="space-carousel group relative w-full min-w-0 max-w-full"
       role="region"
       aria-label="Fotografias del espacio de SAMGUK"
       aria-roledescription="carrusel"
@@ -147,7 +167,7 @@ export function SpaceCarousel() {
         }
       }}
     >
-      <div className="relative aspect-[16/10] min-h-[360px] overflow-hidden rounded-[2rem] border border-white/[0.16] bg-[#061522] shadow-[0_34px_90px_rgba(0,0,0,0.34)] outline-none ring-1 ring-white/[0.08] lg:min-h-[520px]">
+      <div className="relative aspect-[4/3] w-full min-w-0 overflow-hidden rounded-[1.35rem] border border-white/[0.16] bg-[#061522] shadow-[0_24px_70px_rgba(0,0,0,0.32)] outline-none ring-1 ring-white/[0.08] sm:aspect-[16/10] sm:min-h-[360px] sm:rounded-[2rem] lg:min-h-[520px] lg:shadow-[0_34px_90px_rgba(0,0,0,0.34)]">
         <div className="absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(3,13,24,0.04),rgba(3,13,24,0.2))]" />
         <Image
           key={currentImage.src}
@@ -155,34 +175,34 @@ export function SpaceCarousel() {
           alt={currentImage.alt}
           fill
           loading="lazy"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 92vw, 58vw"
+          sizes="(max-width: 767px) calc(100vw - 2.5rem), (max-width: 1200px) 92vw, 58vw"
           className="space-carousel-image object-cover"
           draggable={false}
-          style={{ objectPosition: currentImage.objectPosition ?? "50% 50%" }}
+          style={{ objectPosition }}
         />
 
         <div className="absolute inset-x-0 bottom-0 z-20 h-32 bg-gradient-to-t from-[#061522]/65 to-transparent" />
 
         <button
           type="button"
-          className="absolute left-4 top-1/2 z-30 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.18] bg-[#061522]/42 text-white shadow-[0_18px_48px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:border-white/[0.36] hover:bg-white/[0.13] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:left-5"
+          className="absolute left-3 top-1/2 z-30 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.18] bg-[#061522]/48 text-white shadow-[0_14px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:border-white/[0.36] hover:bg-white/[0.13] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:left-5 sm:size-11"
           aria-label="Ver fotografia anterior del espacio"
           onClick={goToPrevious}
         >
-          <ChevronLeft size={20} aria-hidden="true" />
+          <ChevronLeft size={18} aria-hidden="true" />
         </button>
 
         <button
           type="button"
-          className="absolute right-4 top-1/2 z-30 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.18] bg-[#061522]/42 text-white shadow-[0_18px_48px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:border-white/[0.36] hover:bg-white/[0.13] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:right-5"
+          className="absolute right-3 top-1/2 z-30 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.18] bg-[#061522]/48 text-white shadow-[0_14px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:border-white/[0.36] hover:bg-white/[0.13] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:right-5 sm:size-11"
           aria-label="Ver fotografia siguiente del espacio"
           onClick={() => goToNext()}
         >
-          <ChevronRight size={20} aria-hidden="true" />
+          <ChevronRight size={18} aria-hidden="true" />
         </button>
       </div>
 
-      <div className="mt-5 flex items-center justify-center gap-2" aria-label={statusText}>
+      <div className="mt-4 flex items-center justify-center gap-2 sm:mt-5" aria-label={statusText}>
         {images.map((image, index) => (
           <button
             key={image.src}

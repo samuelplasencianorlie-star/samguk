@@ -47,7 +47,7 @@ const legalCards: Array<{
 
 const labelClass = "text-sm font-semibold text-[#0A2540]";
 const fieldClass =
-  "mt-1.5 w-full rounded-[6px] border border-[#CAD4DE] bg-white px-3.5 py-2.5 text-sm text-[#111318] outline-none transition-colors placeholder:text-[#8A96A3] focus:border-[#174EA6] focus:ring-2 focus:ring-[#174EA6]/20";
+  "mt-1.5 w-full min-w-0 rounded-[6px] border border-[#CAD4DE] bg-white px-3.5 py-2.5 text-sm text-[#111318] outline-none transition-colors placeholder:text-[#8A96A3] focus:border-[#174EA6] focus:ring-2 focus:ring-[#174EA6]/20";
 const errorClass = "mt-1.5 text-xs font-semibold leading-5 text-[#A50D25]";
 
 function validatePhone(value: string) {
@@ -325,7 +325,7 @@ export function RegistrationRequestForm() {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="border border-[#D8E0E6] bg-white p-5 shadow-[0_24px_80px_rgba(10,37,64,0.16)] sm:p-6"
+      className="w-full max-w-full min-w-0 overflow-hidden border border-[#D8E0E6] bg-white p-5 shadow-[0_24px_80px_rgba(10,37,64,0.16)] sm:p-6"
     >
       <div className="mb-5 border-b border-[#E1E7ED] pb-4">
         <p className="section-eyebrow">{formCopy.eyebrow}</p>
@@ -339,11 +339,11 @@ export function RegistrationRequestForm() {
       </div>
 
       <div className="grid gap-5">
-        <fieldset className="grid gap-3.5 sm:grid-cols-6">
+        <fieldset className="grid min-w-0 gap-3.5 sm:grid-cols-6">
           <legend className="mb-1 text-sm font-semibold text-[#0A2540]">
             Datos del alumno/a
           </legend>
-          <label className="sm:col-span-6">
+          <label className="min-w-0 sm:col-span-6">
             <span className={labelClass}>{formCopy.fields.fullName}</span>
             <input
               required
@@ -356,7 +356,7 @@ export function RegistrationRequestForm() {
             />
             <FieldError error={errors.fullName} />
           </label>
-          <label className="sm:col-span-3">
+          <label className="min-w-0 sm:col-span-3">
             <span className={labelClass}>{formCopy.fields.birthDate}</span>
             <input
               required
@@ -368,7 +368,7 @@ export function RegistrationRequestForm() {
             />
             <FieldError error={errors.birthDate} />
           </label>
-          <label className="sm:col-span-3">
+          <label className="min-w-0 sm:col-span-3">
             <span className={labelClass}>DNI / NIE / Pasaporte</span>
             <input
               required
@@ -380,7 +380,7 @@ export function RegistrationRequestForm() {
             />
             <FieldError error={errors.dniNie} />
           </label>
-          <label className="sm:col-span-4">
+          <label className="min-w-0 sm:col-span-4">
             <span className={labelClass}>{formCopy.fields.address}</span>
             <input
               required
@@ -393,7 +393,7 @@ export function RegistrationRequestForm() {
             />
             <FieldError error={errors.address} />
           </label>
-          <label className="sm:col-span-2">
+          <label className="min-w-0 sm:col-span-2">
             <span className={labelClass}>{formCopy.fields.postalCode}</span>
             <input
               required
@@ -409,7 +409,7 @@ export function RegistrationRequestForm() {
           </label>
         </fieldset>
 
-        <fieldset className="grid gap-3.5 sm:grid-cols-6">
+        <fieldset className="grid min-w-0 gap-3.5 sm:grid-cols-6">
           <legend className="mb-1 text-sm font-semibold text-[#0A2540]">
             Contacto
           </legend>
@@ -421,7 +421,7 @@ export function RegistrationRequestForm() {
             </div>
           ) : null}
           {isMinor ? (
-            <label className="sm:col-span-6">
+            <label className="min-w-0 sm:col-span-6">
               <span className={labelClass}>
                 Padre, madre, tutor legal o persona responsable
               </span>
@@ -437,7 +437,7 @@ export function RegistrationRequestForm() {
               <FieldError error={errors.guardian} />
             </label>
           ) : null}
-          <label className="sm:col-span-3">
+          <label className="min-w-0 sm:col-span-3">
             <span className={labelClass}>{formCopy.fields.phone}</span>
             <input
               required
@@ -450,7 +450,7 @@ export function RegistrationRequestForm() {
             />
             <FieldError error={errors.phone} />
           </label>
-          <label className="sm:col-span-3">
+          <label className="min-w-0 sm:col-span-3">
             <span className={labelClass}>{formCopy.fields.phone2}</span>
             <input
               name="phone2"
@@ -461,7 +461,7 @@ export function RegistrationRequestForm() {
             />
             <FieldError error={errors.phone2} />
           </label>
-          <label className="sm:col-span-6">
+          <label className="min-w-0 sm:col-span-6">
             <span className={labelClass}>{formCopy.fields.email}</span>
             <input
               name="email"
