@@ -1,4 +1,4 @@
-export const LEGAL_CONSENT_VERSION = "SAMGUK_PREINSCRIPCION_2026_07";
+export const LEGAL_CONSENT_VERSION = "SAMGUK_PREINSCRIPCION_2026_07_REV2";
 
 export const legalConsentSections = [
   {
@@ -16,11 +16,13 @@ export const legalConsentSections = [
     summary:
       "Información básica del tratamiento conforme al RGPD y la Ley Orgánica 3/2018.",
     paragraphs: [
-      "Los datos personales facilitados serán tratados por Club Deportivo SAMGUK para gestionar la preinscripción, contactar con la persona interesada o responsable legal, organizar la actividad deportiva y mantener la gestión administrativa interna del club.",
-      "La base jurídica del tratamiento es el consentimiento de la persona interesada o, en caso de menores, de su padre, madre, tutor legal o persona responsable, junto con la necesidad de gestionar la relación solicitada con el club.",
-      "Los datos podrán incluir nombre y apellidos, fecha de nacimiento, DNI/NIE o pasaporte, dirección, código postal, teléfonos, email y datos de la persona responsable cuando corresponda.",
-      "La normativa aplicable incluye el Reglamento (UE) 2016/679, General de Protección de Datos, y la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales.",
-      "La persona interesada puede ejercer los derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad mediante los canales oficiales del club."
+      "Responsable del tratamiento: Club Deportivo SAMGUK.",
+      "Finalidad: gestionar la preinscripción solicitada, contactar con la persona interesada o responsable legal, revisar la disponibilidad de plaza y, si procede, formalizar la incorporación y la gestión administrativa del club.",
+      "Datos tratados: nombre y apellidos, fecha de nacimiento, DNI/NIE o pasaporte, dirección, código postal, teléfonos, email y datos de la persona responsable cuando el alumno o alumna sea menor de edad.",
+      "Base jurídica: consentimiento de la persona interesada o de su padre, madre, tutor legal o persona responsable, y aplicación de medidas solicitadas antes de una posible incorporación al club.",
+      "Conservación: los datos se conservarán durante el tiempo necesario para gestionar la solicitud y, si se formaliza la incorporación, durante los plazos necesarios para la relación con el club y las obligaciones aplicables.",
+      "Derechos: la persona interesada puede solicitar acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad cuando proceda, utilizando los canales oficiales del club.",
+      "La normativa aplicable incluye el Reglamento (UE) 2016/679, General de Protección de Datos, y la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales. La persona interesada también puede presentar reclamación ante la Agencia Española de Protección de Datos."
     ]
   },
   {

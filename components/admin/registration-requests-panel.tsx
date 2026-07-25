@@ -1,6 +1,14 @@
 "use client";
 
-import { Check, Mail, Phone, Search, ShieldCheck, X } from "lucide-react";
+import {
+  Check,
+  Clock3,
+  Mail,
+  Phone,
+  Search,
+  ShieldCheck,
+  X
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { StatusBadge } from "@/components/admin/status-badge";
 import type { RegistrationRequest, RequestStatus } from "@/lib/admin-types";
@@ -167,8 +175,10 @@ export function RegistrationRequestsPanel({
     setSavingId("");
   }
 
+  const pendingCount = requests.length;
+
   return (
-    <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+    <div className="grid gap-5 xl:grid-cols-[0.86fr_1.14fr]">
       <section className="rounded-[18px] border border-[#D8E0E6] bg-white p-5 shadow-[0_24px_72px_rgba(10,37,64,0.06)] sm:p-6">
         <div className="flex flex-col gap-4 border-b border-[#E1E7ED] pb-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -179,8 +189,18 @@ export function RegistrationRequestsPanel({
               Solicitudes pendientes
             </h2>
             <p className="mt-2 text-sm leading-6 text-[#687586]">
-              Revisa cada preinscripción y decide si entra en la base de alumnos.
+              Revisa solo lo necesario. Si aceptas, pasa a alumnos; si rechazas,
+              desaparece de esta lista.
             </p>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#E1E7ED] bg-[#F8FAFB] px-3 py-1.5 text-xs font-semibold text-[#0A2540]">
+              <Clock3
+                size={14}
+                strokeWidth={1.8}
+                className="text-[#C8102E]"
+                aria-hidden="true"
+              />
+              {pendingCount} pendientes
+            </div>
           </div>
 
           <label className="relative w-full max-w-sm">
@@ -275,20 +295,13 @@ export function RegistrationRequestsPanel({
                         {imageRightsStatus(request.derechosImagen)}
                       </p>
                     </div>
-                  </button>
-                  {isSelected ? (
-                    <div className="mt-4 border-t border-[#E1E7ED] pt-4">
-                      <RequestActions
-                        disabled={savingId === request.id}
-                        onAccept={() =>
-                          void resolveRequest(request.id, "Aceptada")
-                        }
-                        onReject={() =>
-                          void resolveRequest(request.id, "Rechazada")
-                        }
-                      />
+                    <div className="mt-4 flex items-center justify-between border-t border-[#E1E7ED] pt-3 text-xs font-semibold uppercase tracking-[0.12em]">
+                      <span className={isSelected ? "text-[#174EA6]" : "text-[#8A96A3]"}>
+                        {isSelected ? "Seleccionada" : "Ver solicitud"}
+                      </span>
+                      <span className="text-[#C8102E]">Aceptar o rechazar</span>
                     </div>
-                  ) : null}
+                  </button>
                 </article>
               );
             })
@@ -317,10 +330,31 @@ export function RegistrationRequestsPanel({
                   {selectedRequest.fullName}
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-[#687586]">
-                  Decide si esta persona se incorpora a la base de alumnos.
+                  Lee la ficha, contacta si hace falta y toma una decisión.
                 </p>
               </div>
               <StatusBadge status="Pendiente" />
+            </div>
+
+            <div className="mt-5 rounded-[14px] border border-[#D8E0E6] bg-[#F8FAFB] p-4">
+              <p className="text-sm font-semibold text-[#0A2540]">
+                Decisión de Leo
+              </p>
+              <p className="mt-1 text-sm leading-6 text-[#687586]">
+                Aceptar incorpora la solicitud a alumnos. Rechazar la retira de
+                inscripciones pendientes.
+              </p>
+              <div className="mt-4">
+                <RequestActions
+                  disabled={savingId === selectedRequest.id}
+                  onAccept={() =>
+                    void resolveRequest(selectedRequest.id, "Aceptada")
+                  }
+                  onReject={() =>
+                    void resolveRequest(selectedRequest.id, "Rechazada")
+                  }
+                />
+              </div>
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -420,17 +454,6 @@ export function RegistrationRequestsPanel({
               </dl>
             </section>
 
-            <div className="mt-6">
-              <RequestActions
-                disabled={savingId === selectedRequest.id}
-                onAccept={() =>
-                  void resolveRequest(selectedRequest.id, "Aceptada")
-                }
-                onReject={() =>
-                  void resolveRequest(selectedRequest.id, "Rechazada")
-                }
-              />
-            </div>
           </>
         ) : (
           <div className="rounded-[14px] border border-dashed border-[#CAD4DE] bg-[#F8FAFB] p-8 text-center">

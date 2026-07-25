@@ -1,7 +1,13 @@
 "use client";
 
-import { CheckCircle2, ChevronDown, Lock, ShieldCheck } from "lucide-react";
-import { FormEvent, UIEvent, useMemo, useState } from "react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  FileCheck2,
+  Lock,
+  ShieldCheck
+} from "lucide-react";
+import { FormEvent, UIEvent, useMemo, useRef, useState } from "react";
 import type { RegistrationRequestDraft } from "@/lib/admin-types";
 import { calculateAge } from "@/lib/age";
 import {
@@ -34,15 +40,40 @@ type LegalKey =
   | "admission";
 
 const legalCards: Array<{
+  acceptLabel: string;
   key: LegalKey;
   sectionIndex: number;
 }> = [
-  { key: "conditions", sectionIndex: 0 },
-  { key: "data", sectionIndex: 1 },
-  { key: "minor", sectionIndex: 2 },
-  { key: "responsibility", sectionIndex: 3 },
-  { key: "facilities", sectionIndex: 4 },
-  { key: "admission", sectionIndex: 5 }
+  {
+    acceptLabel: "Acepto las condiciones del club.",
+    key: "conditions",
+    sectionIndex: 0
+  },
+  {
+    acceptLabel: "Confirmo la información de protección de datos.",
+    key: "data",
+    sectionIndex: 1
+  },
+  {
+    acceptLabel: "Confirmo que puedo solicitar la inscripción del menor.",
+    key: "minor",
+    sectionIndex: 2
+  },
+  {
+    acceptLabel: "Acepto la responsabilidad y seguridad deportiva.",
+    key: "responsibility",
+    sectionIndex: 3
+  },
+  {
+    acceptLabel: "Acepto el uso responsable de instalaciones y material.",
+    key: "facilities",
+    sectionIndex: 4
+  },
+  {
+    acceptLabel: "Acepto el derecho de admisión y organización del club.",
+    key: "admission",
+    sectionIndex: 5
+  }
 ];
 
 const labelClass = "text-sm font-semibold text-[#0A2540]";
@@ -79,18 +110,39 @@ function FieldError({ error }: { error?: string }) {
 }
 
 function LegalReadCard({
+  acceptLabel,
   accepted,
   onAcceptedChange,
   onRead,
   read,
   section
 }: {
+  acceptLabel: string;
   accepted: boolean;
   onAcceptedChange: (accepted: boolean) => void;
   onRead: () => void;
   read: boolean;
   section: (typeof legalConsentSections)[number];
 }) {
+  const textRef = useRef<HTMLDivElement>(null);
+
+  function markAsReadIfFinished() {
+    const target = textRef.current;
+
+    if (!target) {
+      return;
+    }
+
+    if (target.scrollHeight <= target.clientHeight + 10) {
+      onRead();
+      return;
+    }
+
+    if (target.scrollTop + target.clientHeight >= target.scrollHeight - 10) {
+      onRead();
+    }
+  }
+
   function handleScroll(event: UIEvent<HTMLDivElement>) {
     const target = event.currentTarget;
 
@@ -100,7 +152,15 @@ function LegalReadCard({
   }
 
   return (
-    <section className="rounded-[14px] border border-[#D8E0E6] bg-white p-4 shadow-[0_18px_44px_rgba(10,37,64,0.05)]">
+    <section
+      className={`rounded-[14px] border bg-white p-4 shadow-[0_18px_44px_rgba(10,37,64,0.05)] transition-colors ${
+        accepted
+          ? "border-[#B9E4C8]"
+          : read
+            ? "border-[#B8C8E8]"
+            : "border-[#D8E0E6]"
+      }`}
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-sm font-semibold text-[#0A2540]">
@@ -123,9 +183,16 @@ function LegalReadCard({
         </span>
       </div>
 
-      <details className="group mt-4 rounded-[12px] border border-[#E1E7ED] bg-[#F8FAFB]">
+      <details
+        className="group mt-4 rounded-[12px] border border-[#E1E7ED] bg-[#F8FAFB]"
+        onToggle={(event) => {
+          if (event.currentTarget.open) {
+            window.requestAnimationFrame(markAsReadIfFinished);
+          }
+        }}
+      >
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-3.5 py-3 text-sm font-semibold text-[#0A2540]">
-          Leer texto completo
+          Abrir y leer texto completo
           <ChevronDown
             size={17}
             strokeWidth={1.8}
@@ -134,6 +201,7 @@ function LegalReadCard({
           />
         </summary>
         <div
+          ref={textRef}
           onScroll={handleScroll}
           className="max-h-48 overflow-y-auto border-t border-[#E1E7ED] px-3.5 py-3 text-sm leading-6 text-[#4F5F70]"
           tabIndex={0}
@@ -161,7 +229,7 @@ function LegalReadCard({
           className="mt-1 h-4 w-4 shrink-0 rounded border-[#CAD4DE] accent-[#C8102E] disabled:cursor-not-allowed"
         />
         <span>
-          Acepto esta condición.
+          {acceptLabel}
           {!read ? (
             <span className="mt-1 flex items-center gap-1.5 text-xs font-medium text-[#805A00]">
               <Lock size={13} strokeWidth={1.8} aria-hidden="true" />
@@ -209,6 +277,12 @@ export function RegistrationRequestForm() {
   const requiredLegalCards = legalCards.filter(
     (card) => card.key !== "minor" || isMinor
   );
+  const readRequiredCount = requiredLegalCards.filter(
+    (card) => readLegal[card.key]
+  ).length;
+  const acceptedRequiredCount = requiredLegalCards.filter(
+    (card) => acceptedLegal[card.key]
+  ).length;
 
   function updateField(field: keyof RegistrationRequestDraft, value: string) {
     setRequest((current) => ({ ...current, [field]: value }));
@@ -336,6 +410,26 @@ export function RegistrationRequestForm() {
           Completa los datos del alumno y acepta las condiciones necesarias para
           que el club pueda revisar la incorporación.
         </p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          {[
+            "Datos completos del alumno",
+            "Condiciones leídas antes de aceptar",
+            "Derecho de imagen separado"
+          ].map((item) => (
+            <div
+              key={item}
+              className="flex items-center gap-2 rounded-[10px] border border-[#E1E7ED] bg-[#F8FAFB] px-3 py-2 text-xs font-semibold leading-5 text-[#0A2540]"
+            >
+              <FileCheck2
+                size={15}
+                strokeWidth={1.8}
+                className="shrink-0 text-[#C8102E]"
+                aria-hidden="true"
+              />
+              {item}
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-5">
@@ -476,24 +570,34 @@ export function RegistrationRequestForm() {
         </fieldset>
 
         <section className="rounded-[16px] border border-[#D8E0E6] bg-[#F8FAFB] p-4">
-          <div className="flex items-start gap-3">
-            <ShieldCheck
-              size={20}
-              strokeWidth={1.8}
-              className="mt-0.5 shrink-0 text-[#C8102E]"
-              aria-hidden="true"
-            />
-            <div>
-              <h3 className="font-semibold text-[#0A2540]">
-                Condiciones y autorizaciones
-              </h3>
-              <p className="mt-1.5 text-sm leading-6 text-[#687586]">
-                Lee cada documento hasta el final para activar su aceptación. El
-                derecho de imagen se decide por separado.
-              </p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#7B8794]">
-                Versión {LEGAL_CONSENT_VERSION}
-              </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3">
+              <ShieldCheck
+                size={20}
+                strokeWidth={1.8}
+                className="mt-0.5 shrink-0 text-[#C8102E]"
+                aria-hidden="true"
+              />
+              <div>
+                <h3 className="font-semibold text-[#0A2540]">
+                  Condiciones y autorizaciones
+                </h3>
+                <p className="mt-1.5 text-sm leading-6 text-[#687586]">
+                  Lee cada documento hasta el final para activar su aceptación.
+                  El derecho de imagen se decide por separado.
+                </p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#7B8794]">
+                  Versión {LEGAL_CONSENT_VERSION}
+                </p>
+              </div>
+            </div>
+            <div className="grid min-w-[132px] gap-1 rounded-[12px] border border-[#D8E0E6] bg-white px-3 py-2 text-xs font-semibold text-[#0A2540]">
+              <span>
+                Leídos: {readRequiredCount}/{requiredLegalCards.length}
+              </span>
+              <span>
+                Aceptados: {acceptedRequiredCount}/{requiredLegalCards.length}
+              </span>
             </div>
           </div>
 
@@ -504,6 +608,7 @@ export function RegistrationRequestForm() {
               return (
                 <LegalReadCard
                   key={card.key}
+                  acceptLabel={card.acceptLabel}
                   accepted={acceptedLegal[card.key]}
                   onAcceptedChange={(accepted) =>
                     setAcceptedLegal((current) => ({
@@ -524,12 +629,31 @@ export function RegistrationRequestForm() {
             })}
 
             <section className="rounded-[14px] border border-[#D8E0E6] bg-white p-4 shadow-[0_18px_44px_rgba(10,37,64,0.05)]">
-              <h3 className="text-sm font-semibold text-[#0A2540]">
-                {legalConsentSections[6].title}
-              </h3>
-              <p className="mt-1.5 text-sm leading-6 text-[#687586]">
-                {legalConsentSections[6].summary}
-              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-[#0A2540]">
+                    {legalConsentSections[6].title}
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-6 text-[#687586]">
+                    {legalConsentSections[6].summary}
+                  </p>
+                </div>
+                <span
+                  className={`inline-flex min-h-8 shrink-0 items-center rounded-full border px-3 text-xs font-semibold ${
+                    imageRights === null
+                      ? "border-[#E6A500]/24 bg-[#FFF7DF] text-[#805A00]"
+                      : imageRights
+                        ? "border-[#1E8E3E]/20 bg-[#EAF7EF] text-[#1E6E35]"
+                        : "border-[#C8102E]/18 bg-[#FFF0F3] text-[#A50D25]"
+                  }`}
+                >
+                  {imageRights === null
+                    ? "Pendiente"
+                    : imageRights
+                      ? "Autorizado"
+                      : "No autorizado"}
+                </span>
+              </div>
               <details className="group mt-4 rounded-[12px] border border-[#E1E7ED] bg-[#F8FAFB]">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-3.5 py-3 text-sm font-semibold text-[#0A2540]">
                   Leer texto completo
