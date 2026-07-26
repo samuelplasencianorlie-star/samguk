@@ -13,14 +13,14 @@
 }
 
 html {
-  overflow-x: clip;
+  overflow-x: hidden;
   scroll-behavior: smooth;
   scroll-padding-top: 88px;
 }
 
 body {
   margin: 0;
-  overflow-x: clip;
+  overflow-x: hidden;
   background: #ffffff;
   color: #111318;
   font-family:
@@ -49,7 +49,7 @@ a {
 
 .public-site {
   max-width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 
 .section-eyebrow {
@@ -1356,6 +1356,11 @@ a {
 
 .space-carousel-image {
   animation: space-carousel-fade 620ms ease-out both;
+}
+
+.space-carousel {
+  touch-action: pan-y pinch-zoom;
+  overscroll-behavior: contain;
 }
 
 @keyframes space-carousel-fade {

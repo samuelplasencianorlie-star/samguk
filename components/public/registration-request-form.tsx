@@ -153,7 +153,7 @@ function LegalReadCard({
 
   return (
     <section
-      className={`rounded-[14px] border bg-white p-4 shadow-[0_18px_44px_rgba(10,37,64,0.05)] transition-colors ${
+      className={`max-w-full min-w-0 overflow-hidden rounded-[14px] border bg-white p-4 shadow-[0_18px_44px_rgba(10,37,64,0.05)] transition-colors ${
         accepted
           ? "border-[#B9E4C8]"
           : read
@@ -162,11 +162,11 @@ function LegalReadCard({
       }`}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-[#0A2540]">
+        <div className="min-w-0">
+          <h3 className="break-words text-sm font-semibold text-[#0A2540]">
             {section.title}
           </h3>
-          <p className="mt-1.5 text-sm leading-6 text-[#687586]">
+          <p className="mt-1.5 break-words text-sm leading-6 text-[#687586]">
             {section.summary}
           </p>
         </div>
@@ -191,8 +191,8 @@ function LegalReadCard({
           }
         }}
       >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-3.5 py-3 text-sm font-semibold text-[#0A2540]">
-          Abrir y leer texto completo
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3.5 py-3 text-sm font-semibold text-[#0A2540]">
+          <span className="min-w-0 break-words">Abrir y leer texto completo</span>
           <ChevronDown
             size={17}
             strokeWidth={1.8}
@@ -215,7 +215,7 @@ function LegalReadCard({
       </details>
 
       <label
-        className={`mt-4 flex gap-3 rounded-[12px] border px-3.5 py-3 text-sm font-semibold leading-6 ${
+        className={`mt-4 flex min-w-0 gap-3 rounded-[12px] border px-3.5 py-3 text-sm font-semibold leading-6 ${
           read
             ? "border-[#D8E0E6] bg-white text-[#0A2540]"
             : "border-[#E1E7ED] bg-[#F8FAFB] text-[#7B8794]"
@@ -228,7 +228,7 @@ function LegalReadCard({
           onChange={(event) => onAcceptedChange(event.target.checked)}
           className="mt-1 h-4 w-4 shrink-0 rounded border-[#CAD4DE] accent-[#C8102E] disabled:cursor-not-allowed"
         />
-        <span>
+        <span className="min-w-0 break-words">
           {acceptLabel}
           {!read ? (
             <span className="mt-1 flex items-center gap-1.5 text-xs font-medium text-[#805A00]">
@@ -594,29 +594,29 @@ export function RegistrationRequestForm() {
           </label>
         </fieldset>
 
-        <section className="rounded-[16px] border border-[#D8E0E6] bg-[#F8FAFB] p-4">
+        <section className="max-w-full min-w-0 overflow-hidden rounded-[16px] border border-[#D8E0E6] bg-[#F8FAFB] p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex items-start gap-3">
+            <div className="flex min-w-0 items-start gap-3">
               <ShieldCheck
                 size={20}
                 strokeWidth={1.8}
                 className="mt-0.5 shrink-0 text-[#C8102E]"
                 aria-hidden="true"
               />
-              <div>
-                <h3 className="font-semibold text-[#0A2540]">
+              <div className="min-w-0">
+                <h3 className="break-words font-semibold text-[#0A2540]">
                   Condiciones y autorizaciones
                 </h3>
-                <p className="mt-1.5 text-sm leading-6 text-[#687586]">
+                <p className="mt-1.5 break-words text-sm leading-6 text-[#687586]">
                   Lee cada documento hasta el final para activar su aceptación.
                   El derecho de imagen se decide por separado.
                 </p>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#7B8794]">
+                <p className="mt-1 break-words text-xs font-semibold uppercase tracking-[0.12em] text-[#7B8794]">
                   Versión {LEGAL_CONSENT_VERSION}
                 </p>
               </div>
             </div>
-            <div className="grid min-w-[132px] gap-1 rounded-[12px] border border-[#D8E0E6] bg-white px-3 py-2 text-xs font-semibold text-[#0A2540]">
+            <div className="grid w-fit max-w-full gap-1 rounded-[12px] border border-[#D8E0E6] bg-white px-3 py-2 text-xs font-semibold text-[#0A2540]">
               <span>
                 Leídos: {readRequiredCount}/{requiredLegalCards.length}
               </span>
@@ -653,13 +653,13 @@ export function RegistrationRequestForm() {
               );
             })}
 
-            <section className="rounded-[14px] border border-[#D8E0E6] bg-white p-4 shadow-[0_18px_44px_rgba(10,37,64,0.05)]">
+            <section className="max-w-full min-w-0 overflow-hidden rounded-[14px] border border-[#D8E0E6] bg-white p-4 shadow-[0_18px_44px_rgba(10,37,64,0.05)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-[#0A2540]">
+                <div className="min-w-0">
+                  <h3 className="break-words text-sm font-semibold text-[#0A2540]">
                     {legalConsentSections[6].title}
                   </h3>
-                  <p className="mt-1.5 text-sm leading-6 text-[#687586]">
+                  <p className="mt-1.5 break-words text-sm leading-6 text-[#687586]">
                     {legalConsentSections[6].summary}
                   </p>
                 </div>
@@ -687,8 +687,10 @@ export function RegistrationRequestForm() {
                   }
                 }}
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-3.5 py-3 text-sm font-semibold text-[#0A2540]">
-                  Abrir y leer texto completo
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3.5 py-3 text-sm font-semibold text-[#0A2540]">
+                  <span className="min-w-0 break-words">
+                    Abrir y leer texto completo
+                  </span>
                   <ChevronDown
                     size={17}
                     strokeWidth={1.8}
@@ -716,7 +718,7 @@ export function RegistrationRequestForm() {
                 ].map(([value, label]) => (
                   <label
                     key={String(value)}
-                    className={`flex min-h-12 items-center gap-2 rounded-[12px] border px-3.5 text-sm font-semibold transition-colors ${
+                    className={`flex min-h-12 min-w-0 items-center gap-2 rounded-[12px] border px-3.5 text-sm font-semibold transition-colors ${
                       !imageRightsRead
                         ? "border-[#E1E7ED] bg-[#F8FAFB] text-[#7B8794]"
                         : imageRights === value
@@ -735,14 +737,16 @@ export function RegistrationRequestForm() {
                       }}
                       className="accent-[#C8102E] disabled:cursor-not-allowed"
                     />
-                    {label}
+                    <span className="min-w-0 break-words">{label}</span>
                   </label>
                 ))}
               </div>
               {!imageRightsRead ? (
-                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#805A00]">
+                <p className="mt-2 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-[#805A00]">
                   <Lock size={13} strokeWidth={1.8} aria-hidden="true" />
-                  Lee el texto de derecho de imagen antes de elegir una opción.
+                  <span className="min-w-0 break-words">
+                    Lee el texto de derecho de imagen antes de elegir una opción.
+                  </span>
                 </p>
               ) : null}
             </section>

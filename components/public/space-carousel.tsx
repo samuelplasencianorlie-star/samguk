@@ -17,6 +17,7 @@ export function SpaceCarousel() {
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [manualInteraction, setManualInteraction] = useState(0);
   const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
   const total = images.length;
 
   const currentImage = images[activeIndex];
@@ -150,17 +151,26 @@ export function SpaceCarousel() {
       onMouseLeave={() => setIsPausedByHover(false)}
       onTouchStart={(event) => {
         touchStartX.current = event.touches[0]?.clientX ?? null;
+        touchStartY.current = event.touches[0]?.clientY ?? null;
       }}
       onTouchEnd={(event) => {
-        if (touchStartX.current === null) return;
+        if (touchStartX.current === null || touchStartY.current === null) return;
 
         const endX = event.changedTouches[0]?.clientX ?? touchStartX.current;
-        const distance = touchStartX.current - endX;
+        const endY = event.changedTouches[0]?.clientY ?? touchStartY.current;
+        const distanceX = touchStartX.current - endX;
+        const distanceY = touchStartY.current - endY;
         touchStartX.current = null;
+        touchStartY.current = null;
 
-        if (Math.abs(distance) < SWIPE_THRESHOLD) return;
+        if (
+          Math.abs(distanceX) < SWIPE_THRESHOLD ||
+          Math.abs(distanceX) < Math.abs(distanceY) * 1.35
+        ) {
+          return;
+        }
 
-        if (distance > 0) {
+        if (distanceX > 0) {
           goToNext();
         } else {
           goToPrevious();
