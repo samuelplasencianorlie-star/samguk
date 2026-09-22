@@ -22,6 +22,7 @@ import { SiteHeader } from "@/components/public/site-header";
 import { SpaceCarousel } from "@/components/public/space-carousel";
 import { usePublicLanguage } from "@/components/public/language-switch";
 import { publicTranslations } from "@/lib/public-translations";
+import { getPublicSchedule } from "@/lib/public-schedule";
 import { siteConfig } from "@/lib/site-config";
 
 const quickLinks = [
@@ -31,26 +32,6 @@ const quickLinks = [
   { label: "Inscripción", href: "/inscripcion", icon: ArrowRight }
 ];
 
-const publicScheduleBlocks = siteConfig.trainingSchedule.map((block) =>
-  block.days === "Martes · Jueves"
-    ? {
-        ...block,
-        items: [
-          { time: "16:15 — 17:15", label: "Curso 5" },
-          { time: "17:20 — 18:20", label: "Curso 6" },
-          ...block.items
-        ]
-      }
-    : block
-);
-const publicCourseLabels: Record<string, string> = {
-  "Curso 1": "Course 1",
-  "Curso 2": "Course 2",
-  "Curso 3": "Course 3",
-  "Curso 4": "Course 4",
-  "Curso 5": "Course 5",
-  "Curso 6": "Course 6"
-};
 const contactEmailHref = siteConfig.contact.email
   ? `mailto:${siteConfig.contact.email}`
   : undefined;
@@ -119,13 +100,13 @@ const contactItems = [
 
 const coursePhotos = [
   {
-    src: siteConfig.assets.photos.trainingStudents,
-    alt: "Alumnos de SAMGUK sentados en el tatami",
+    src: "/images/samguk/leo-2026/entreno-grupo.webp",
+    alt: "Alumnos de SAMGUK practicando taekwondo en el tatami",
     className: "aspect-[16/9] min-h-[260px] lg:min-h-[360px]"
   },
   {
-    src: siteConfig.assets.photos.trainingTechnique,
-    alt: "Alumno de SAMGUK entrenando técnica sobre material",
+    src: "/images/samguk/leo-2026/entreno-equilibrio.webp",
+    alt: "Alumno de SAMGUK realizando un ejercicio de equilibrio sobre una plataforma",
     className: "aspect-[4/5] min-h-[260px] lg:min-h-[360px]"
   }
 ];
@@ -172,19 +153,7 @@ export default function Home() {
     ...item,
     label: home.quick[index] || item.label
   }));
-  const localizedScheduleBlocks = publicScheduleBlocks.map((block) => ({
-    ...block,
-    items: block.items.map((item) => {
-      if (language === "es") {
-        return item;
-      }
-
-      const label =
-        publicCourseLabels[item.label] || "Combat competition technical program";
-
-      return { ...item, label };
-    })
-  }));
+  const localizedScheduleBlocks = getPublicSchedule(language);
   const localizedContactItems = contactItems.map((item, index) => ({
     ...item,
     ...home.contact.cards[index]
@@ -399,6 +368,24 @@ export default function Home() {
             <Reveal delay={100}>
               <div className="min-w-0 max-w-full overflow-hidden">
                 <SpaceCarousel />
+                <figure className="mt-6">
+                  <video
+                    controls
+                    playsInline
+                    preload="none"
+                    poster="/images/samguk/leo-2026/recorrido-portada.webp"
+                    aria-label={language === "es" ? "Recorrido por el club SAMGUK" : "Tour of the SAMGUK club"}
+                    className="aspect-video w-full rounded-[1.35rem] border border-white/[0.16] bg-[#061522]"
+                  >
+                    <source src="/videos/samguk-recorrido.mp4" type="video/mp4" />
+                    <a href="/videos/samguk-recorrido.mp4">
+                      {language === "es" ? "Ver el vídeo del club" : "Watch the club video"}
+                    </a>
+                  </video>
+                  <figcaption className="mt-3 text-sm text-white/[0.68]">
+                    {language === "es" ? "Un recorrido por nuestro club." : "A tour of our club."}
+                  </figcaption>
+                </figure>
               </div>
             </Reveal>
           </div>
@@ -510,9 +497,16 @@ export default function Home() {
                               />
                               <span>{end}</span>
                             </div>
-                            <p className="text-base font-semibold leading-6 text-white/[0.82]">
-                              {item.label}
-                            </p>
+                            <div>
+                              <p className="text-base font-semibold leading-6 text-white/[0.82]">
+                                {item.label}
+                              </p>
+                              {item.detail && (
+                                <p className="mt-1 text-sm leading-6 text-white/[0.72]">
+                                  {item.detail}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
