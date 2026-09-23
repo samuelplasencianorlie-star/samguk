@@ -35,7 +35,7 @@ export const siteConfig = {
         { time: "17:15 — 18:15", label: "Curso 1" },
         { time: "18:20 — 19:20", label: "Curso 2" },
         { time: "19:25 — 20:25", label: "Curso 3" },
-        { time: "20:30 — 21:00", label: "Curso 4" }
+        { time: "20:30 — 21:30", label: "Curso 4" }
       ]
     },
     {

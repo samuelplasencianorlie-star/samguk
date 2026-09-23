@@ -33,7 +33,7 @@ export const adminCourses: AdminCourse[] = [
     title: "Curso 4",
     ageRange: "Curso 4",
     days: "Lunes · Miércoles · Viernes",
-    time: "20:30 a 21:00"
+    time: "20:30 a 21:30"
   }
 ];
 
