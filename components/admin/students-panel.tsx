@@ -9,6 +9,7 @@ import {
   Clock3,
   Pencil,
   Search,
+  Trash2,
   UserPlus,
   X
 } from "lucide-react";
@@ -251,6 +252,7 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("Todos");
   const [paymentFeedback, setPaymentFeedback] = useState("");
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null);
+  const [deletingStudentId, setDeletingStudentId] = useState<string | null>(null);
 
   const courseOptions = useMemo(
     () =>
@@ -679,6 +681,50 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
     setSelectedStudent(nextStudent);
   }
 
+  async function deleteStudent(student: Student) {
+    const confirmed = window.confirm(
+      `¿Eliminar definitivamente a ${student.fullName}?\n\nEsta acción no se puede deshacer.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingStudentId(student.id);
+    setActionError("");
+
+    let response: Response;
+
+    try {
+      response = await fetch("/api/admin/students", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: student.id })
+      });
+    } catch {
+      setActionError("No se ha podido conectar con Supabase.");
+      setDeletingStudentId(null);
+      return;
+    }
+
+    const body = (await response.json().catch(() => null)) as {
+      deletedId?: string;
+      message?: string;
+    } | null;
+
+    if (!response.ok || body?.deletedId !== student.id) {
+      setActionError(body?.message || "No se ha podido eliminar el alumno.");
+      setDeletingStudentId(null);
+      return;
+    }
+
+    setStudents((currentStudents) =>
+      currentStudents.filter((currentStudent) => currentStudent.id !== student.id)
+    );
+    setSelectedStudent(null);
+    setDeletingStudentId(null);
+  }
+
   return (
     <div className="grid gap-5">
       <section className="overflow-hidden rounded-[24px] border border-[#D8E0E6] bg-white shadow-[0_24px_80px_rgba(10,37,64,0.06)]">
@@ -936,6 +982,8 @@ export function StudentsPanel({ initialStudents, courses }: StudentsPanelProps) 
           onClose={() => setSelectedStudent(null)}
           onEdit={() => editStudent(selectedStudent)}
           onDeactivate={() => markStudentAsInactive(selectedStudent)}
+          onDelete={() => deleteStudent(selectedStudent)}
+          isDeleting={deletingStudentId === selectedStudent.id}
           error={actionError}
         />
       ) : null}
@@ -1038,6 +1086,8 @@ function StudentDetail({
   onClose,
   onEdit,
   onDeactivate,
+  onDelete,
+  isDeleting,
   error
 }: {
   student: Student;
@@ -1046,6 +1096,8 @@ function StudentDetail({
   onClose: () => void;
   onEdit: () => void;
   onDeactivate: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
   error: string;
 }) {
   return (
@@ -1095,10 +1147,22 @@ function StudentDetail({
                 <button
                   type="button"
                   onClick={onDeactivate}
+                  disabled={student.status === "Baja"}
                   className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#EEF2F5] px-4 text-sm font-semibold text-[#52606E] transition-colors hover:bg-[#FFE7EC] hover:text-[#A50D25]"
                 >
-                  Dar de baja
+                  {student.status === "Baja" ? "Alumno de baja" : "Dar de baja"}
                 </button>
+                {student.status === "Baja" ? (
+                  <button
+                    type="button"
+                    onClick={onDelete}
+                    disabled={isDeleting}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#C8102E]/30 bg-white px-4 text-sm font-semibold text-[#A50D25] transition-colors hover:border-[#C8102E] hover:bg-[#FFF1F4] disabled:cursor-wait disabled:opacity-60"
+                  >
+                    <Trash2 size={16} strokeWidth={1.8} aria-hidden="true" />
+                    {isDeleting ? "Eliminando..." : "Eliminar definitivamente"}
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>

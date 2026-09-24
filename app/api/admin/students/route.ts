@@ -631,3 +631,48 @@ export async function PATCH(request: NextRequest) {
 
   return NextResponse.json({ student: rowToStudent(savedStudent, payments) });
 }
+
+export async function DELETE(request: NextRequest) {
+  const auth = await requireAdmin();
+
+  if ("error" in auth) {
+    return errorResponse(auth.error || "No autorizado.", auth.status);
+  }
+
+  const payload = (await request.json().catch(() => ({}))) as StudentPayload;
+  const id = text(payload.id);
+
+  if (!id) {
+    return errorResponse("No se ha encontrado el alumno.");
+  }
+
+  const { data: existing, error: existingError } = await auth.supabase
+    .from("students")
+    .select("id,status")
+    .eq("id", id)
+    .single();
+
+  if (existingError || !existing) {
+    return errorResponse("No se ha encontrado el alumno.", 404);
+  }
+
+  if (existing.status !== "Baja") {
+    return errorResponse(
+      "Por seguridad, primero debes dar de baja al alumno.",
+      409
+    );
+  }
+
+  const { data: deleted, error: deleteError } = await auth.supabase
+    .from("students")
+    .delete()
+    .eq("id", id)
+    .select("id")
+    .single();
+
+  if (deleteError || !deleted) {
+    return dbErrorResponse(deleteError);
+  }
+
+  return NextResponse.json({ deletedId: deleted.id });
+}
